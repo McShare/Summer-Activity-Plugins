@@ -7,9 +7,21 @@
     <groupId>org.example</groupId>
     <artifactId>MBLogin</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <repositories>
-        <!-- This adds the Spigot Maven repository to the build -->
+        <!-- This adds the Server API Maven repository to the build -->
         <repository>
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
@@ -22,7 +34,7 @@
     </repositories>
 
     <dependencies>
-        <!--This adds the Spigot API artifact to the build -->
+        <!--This adds the Server API artifact to the build -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
