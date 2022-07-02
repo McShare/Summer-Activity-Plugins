@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Objects;
 
-public class LoginCommand implements CommandExecutor {
+public class RegisterCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -26,39 +26,46 @@ public class LoginCommand implements CommandExecutor {
             commandSender.sendMessage("§c(!) 该指令只能在游戏内使用");
             return false;
         }
-        if (args.length != 1) {
-            commandSender.sendMessage("§c(!) 指令参数不正确, 用法 /login <密码>");
+        if (args.length != 2) {
+            commandSender.sendMessage("§c(!) 指令参数不正确, 用法 /register <密码> <确认密码>");
             return false;
         }
-        if (LoginMain.instance.onlinePlayers.get(player) != LoginMain.Status.NOT_LOGIN) {
-            commandSender.sendMessage("§c(!) 你应该先完成注册");
+        if (LoginMain.instance.onlinePlayers.get(player) != LoginMain.Status.NOT_REGISTER) {
+            commandSender.sendMessage("§c(!) 你不需要进行注册");
             return false;
         }
 
         String playerName = commandSender.getName().toLowerCase();
         File file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 
-        try {
-            PlayerData playerData = new PlayerData().applyConfigSection(yaml);
+        if (file.exists()) {
+            commandSender.sendMessage("§c(!) 该账户已完成注册");
+            return false;
+        } else {
+            if (!args[0].equals(args[1])) {
+                commandSender.sendMessage("§c(!) 两次密码不同，请重试");
+                return false;
+            }
+
+            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+
+            PlayerData playerData = new PlayerData();
+            playerData.password = Utils.md5DigestAsHex(args[0].getBytes());
             playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
 
-            if (playerData.password.equals(Utils.md5DigestAsHex(args[0].getBytes()))) {
+            try {
                 yaml = playerData.reflectToConfigSection(yaml);
                 yaml.save(file);
 
-                commandSender.sendMessage("§a(*) 登录成功，欢迎回来~");
+                commandSender.sendMessage("§a(*) 注册成功，欢迎加入~");
 
                 LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
                 player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
-            } else {
-                commandSender.sendMessage("§c(!) 密码错误, 请重试");
+            } catch (Exception e) {
+                LoginMain.instance.getLogger().warning(e.toString());
             }
-        } catch (Exception e) {
-            LoginMain.instance.getLogger().warning(e.toString());
         }
 
         return false;
     }
-
 }

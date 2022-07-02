@@ -1,16 +1,19 @@
 package cc.venja.minebbs.login.data;
 
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Server;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.lang.reflect.Field;
 
 public class PlayerData {
 
-    public String password;
-    public String lastLoginIp;
+    public String password = "";
+    public String lastLoginIp = "";
+    public Integer lastGameMode = GameMode.SURVIVAL.getValue();
 
-    public YamlConfiguration reflectToConfigSection() throws Exception {
-        YamlConfiguration yaml = new YamlConfiguration();
+    public YamlConfiguration reflectToConfigSection(YamlConfiguration yaml) throws Exception {
 
         Class<?> dataClazz = this.getClass();
 
@@ -27,12 +30,20 @@ public class PlayerData {
 
         for (Field field : dataClazz.getDeclaredFields()) {
             String name = field.getName();
-            String value = section.getString(name, "");
+            Object value = section.get(name);
             field.set(data, value);
-            break;
         }
 
+        Bukkit.getLogger().info(data.toString());
         return data;
     }
 
+    @Override
+    public String toString() {
+        return "PlayerData{" +
+                "password='" + password + '\'' +
+                ", lastLoginIp='" + lastLoginIp + '\'' +
+                ", lastGameMode=" + lastGameMode +
+                '}';
+    }
 }

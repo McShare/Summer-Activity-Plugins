@@ -1,5 +1,5 @@
 name: MBLogin
-main: cc.venja.minebbs.login
+main: cc.venja.minebbs.login.LoginMain
 version: 1.0.0
 author: Kazi-VE
 
