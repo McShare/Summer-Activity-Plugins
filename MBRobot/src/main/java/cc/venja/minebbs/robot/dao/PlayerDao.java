@@ -5,6 +5,12 @@ public class PlayerDao {
     public String playerName = null;
     public String KHL = null;
 
+    public PlayerDao(){ }
+
+    public PlayerDao(String playerName) {
+        this.playerName = playerName;
+    }
+
     public boolean isValid() {
         return (playerName != null) && (KHL != null);
     }

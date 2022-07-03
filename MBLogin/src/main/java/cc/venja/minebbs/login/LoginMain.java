@@ -12,6 +12,7 @@ import org.bukkit.GameMode;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,13 +51,20 @@ public class LoginMain extends JavaPlugin implements Listener {
     }
 
 
-    @EventHandler
+    @EventHandler (
+            priority = EventPriority.HIGHEST
+    )
     public void onPreJoin(AsyncPlayerPreLoginEvent event) {
+        if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+
         Player player = Bukkit.getPlayer(Objects.requireNonNull(event.getPlayerProfile().getName()));
         if (player == null) return;
         var status = onlinePlayers.getOrDefault(player, Status.NOT_LOGIN);
         switch (status) {
-            case LOGIN -> event.kickMessage(Component.text("§c该账户已登录，禁止顶号，如有异常请联系管理"));
+            case LOGIN -> {
+                event.kickMessage(Component.text("§c该账户已登录，禁止顶号，如有异常请联系管理"));
+                event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_FULL);
+            }
             case REGISTER, NOT_LOGIN, NOT_REGISTER -> player.kick(Component.text("§c异地登录，你被顶下线了，如有异常请联系管理"));
         }
     }

@@ -5,7 +5,12 @@ import cc.venja.minebbs.robot.handler.RobotGetTeamHandler;
 import cc.venja.minebbs.robot.handler.RobotWhitelistHandler;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -13,7 +18,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
-public class RobotMain extends JavaPlugin {
+public class RobotMain extends JavaPlugin implements Listener {
 
     public static RobotMain instance;
     public static final Gson gson = new Gson();
@@ -61,11 +66,23 @@ public class RobotMain extends JavaPlugin {
         } catch (Exception e) {
             getLogger().warning(e.toString());
         }
+
+        getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
     public void onDisable() {
         server.stop(1);
+    }
+
+    @EventHandler (
+            priority = EventPriority.LOWEST
+    )
+    public void onPreJoin(AsyncPlayerPreLoginEvent event) {
+        if (!existsWhitelist(new PlayerDao(event.getPlayerProfile().getName()))) {
+            event.kickMessage(Component.text("§c你不在本服务器白名单内"));
+            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST);
+        }
     }
 
     public static void addWhitelist(PlayerDao player) throws IOException {
@@ -81,6 +98,5 @@ public class RobotMain extends JavaPlugin {
         instance.whitelist.set(playerDao.playerName, null);
         instance.whitelist.save(instance.whitelistFile);
     }
-
 
 }
