@@ -12,7 +12,6 @@ public class PlayerData {
     public Integer lastGameMode = GameMode.SURVIVAL.getValue();
 
     public YamlConfiguration reflectToConfigSection(YamlConfiguration yaml) throws Exception {
-
         Class<?> dataClazz = this.getClass();
 
         for (Field field : dataClazz.getDeclaredFields()) {
