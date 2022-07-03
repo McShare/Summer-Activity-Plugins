@@ -1,0 +1,8 @@
+name: MBRobot
+main: cc.venja.minebbs.robot.RobotMain
+version: 1.0.0
+author: Kazi-VE
+api-version: 1.13
+
+softdepend:
+  - MBBattle
