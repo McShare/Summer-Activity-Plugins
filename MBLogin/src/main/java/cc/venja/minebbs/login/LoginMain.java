@@ -1,5 +1,6 @@
 package cc.venja.minebbs.login;
 
+import cc.venja.minebbs.login.commands.AutoLoginCommand;
 import cc.venja.minebbs.login.commands.LoginCommand;
 import cc.venja.minebbs.login.commands.RegisterCommand;
 import cc.venja.minebbs.login.data.PlayerData;
@@ -45,6 +46,7 @@ public class LoginMain extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
         Objects.requireNonNull(this.getServer().getPluginCommand("login")).setExecutor(new LoginCommand());
         Objects.requireNonNull(this.getServer().getPluginCommand("register")).setExecutor(new RegisterCommand());
+        Objects.requireNonNull(this.getServer().getPluginCommand("autologin")).setExecutor(new AutoLoginCommand());
     }
 
 
@@ -80,13 +82,15 @@ public class LoginMain extends JavaPlugin implements Listener {
             var playerData = new PlayerData().applyConfigSection(yaml);
 
             if (playerData.lastLoginIp.equals(Objects.requireNonNull(event.getPlayer().getAddress()).getAddress().toString())) {
-                event.getPlayer().sendMessage("§a(*) 与上次登录IP相同，自动登录，欢迎回来~");
+                if (playerData.enableAutoLogin) {
+                    event.getPlayer().sendMessage("§a(*) 与上次登录IP相同，自动登录，欢迎回来~");
 
-                LoginMain.instance.onlinePlayers.put(event.getPlayer(), LoginMain.Status.LOGIN);
-                event.getPlayer().setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
-            } else {
-                event.getPlayer().sendMessage("§6>>> 请输入/login <密码>, 进行登录");
+                    LoginMain.instance.onlinePlayers.put(event.getPlayer(), LoginMain.Status.LOGIN);
+                    event.getPlayer().setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
+                    return;
+                }
             }
+            event.getPlayer().sendMessage("§6>>> 请输入/login <密码>, 进行登录");
         }
     }
 

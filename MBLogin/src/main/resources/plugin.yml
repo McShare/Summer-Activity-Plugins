@@ -6,6 +6,8 @@ api-version: 1.13
 
 commands:
   register:
-    description: Register Command
+    description: MBLogin注册指令
   login:
-    description: Login Commad
+    description: MBLogin登录指令
+  autologin:
+    description: MBLogin启用/关闭同IP自动登录

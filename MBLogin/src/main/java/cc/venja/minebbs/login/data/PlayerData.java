@@ -10,6 +10,7 @@ public class PlayerData {
     public String password = "";
     public String lastLoginIp = "";
     public Integer lastGameMode = GameMode.SURVIVAL.getValue();
+    public Boolean enableAutoLogin = false;
 
     public YamlConfiguration reflectToConfigSection(YamlConfiguration yaml) throws Exception {
         var dataClazz = this.getClass();
