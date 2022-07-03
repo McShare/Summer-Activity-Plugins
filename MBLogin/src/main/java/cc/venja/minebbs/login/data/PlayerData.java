@@ -1,8 +1,6 @@
 package cc.venja.minebbs.login.data;
 
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Server;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.lang.reflect.Field;
@@ -31,10 +29,14 @@ public class PlayerData {
         for (Field field : dataClazz.getDeclaredFields()) {
             String name = field.getName();
             Object value = section.get(name);
+            if (value == null) {
+                PlayerData self = new PlayerData();
+                Class<?> selfClazz = self.getClass();
+                value = selfClazz.getField(name).get(self);
+            }
             field.set(data, value);
         }
 
-        Bukkit.getLogger().info(data.toString());
         return data;
     }
 
