@@ -25,20 +25,20 @@ public abstract class Utils {
     }
 
     private static String digestAsHexString(String algorithm, byte[] bytes) {
-        char[] hexDigest = digestAsHexChars(algorithm, bytes);
+        var hexDigest = digestAsHexChars(algorithm, bytes);
         return new String(hexDigest);
     }
 
     private static char[] digestAsHexChars(String algorithm, byte[] bytes) {
-        byte[] digest = digest(algorithm, bytes);
+        var digest = digest(algorithm, bytes);
         return encodeHex(digest);
     }
 
     private static char[] encodeHex(byte[] bytes) {
-        char[] chars = new char[32];
+        var chars = new char[32];
 
         for(int i = 0; i < chars.length; i += 2) {
-            byte b = bytes[i / 2];
+            var b = bytes[i / 2];
             chars[i] = HEX_CHARS[b >>> 4 & 15];
             chars[i + 1] = HEX_CHARS[b & 15];
         }

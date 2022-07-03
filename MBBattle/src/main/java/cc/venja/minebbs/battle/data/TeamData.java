@@ -10,7 +10,7 @@ public class TeamData {
 
     public YamlConfiguration reflectToConfigSection(YamlConfiguration yaml) throws Exception {
 
-        Class<?> dataClazz = this.getClass();
+        var dataClazz = this.getClass();
 
         for (Field field : dataClazz.getDeclaredFields()) {
             yaml.set(field.getName(), field.get(this));
@@ -20,15 +20,15 @@ public class TeamData {
     }
 
     public TeamData applyConfigSection(YamlConfiguration section) throws Exception {
-        TeamData data = new TeamData();
-        Class<?> dataClazz = data.getClass();
+        var data = new TeamData();
+        var dataClazz = data.getClass();
 
         for (Field field : dataClazz.getDeclaredFields()) {
-            String name = field.getName();
-            Object value = section.get(name);
+            var name = field.getName();
+            var value = section.get(name);
             if (value == null) {
-                TeamData self = new TeamData();
-                Class<?> selfClazz = self.getClass();
+                var self = new TeamData();
+                var selfClazz = self.getClass();
                 value = selfClazz.getField(name).get(self);
             }
             field.set(data, value);

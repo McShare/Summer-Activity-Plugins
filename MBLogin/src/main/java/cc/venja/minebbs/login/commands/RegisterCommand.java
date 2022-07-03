@@ -35,8 +35,8 @@ public class RegisterCommand implements CommandExecutor {
             return false;
         }
 
-        String playerName = commandSender.getName().toLowerCase();
-        File file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+        var playerName = commandSender.getName().toLowerCase();
+        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
 
         if (file.exists()) {
             commandSender.sendMessage("§c(!) 该账户已完成注册");
@@ -47,9 +47,9 @@ public class RegisterCommand implements CommandExecutor {
                 return false;
             }
 
-            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+            var yaml = YamlConfiguration.loadConfiguration(file);
 
-            PlayerData playerData = new PlayerData();
+            var playerData = new PlayerData();
             playerData.password = Utils.md5DigestAsHex(args[0].getBytes());
             playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
 

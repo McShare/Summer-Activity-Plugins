@@ -52,7 +52,7 @@ public class LoginMain extends JavaPlugin implements Listener {
     public void onPreJoin(AsyncPlayerPreLoginEvent event) {
         Player player = Bukkit.getPlayer(Objects.requireNonNull(event.getPlayerProfile().getName()));
         if (player == null) return;
-        Status status = onlinePlayers.getOrDefault(player, Status.NOT_LOGIN);
+        var status = onlinePlayers.getOrDefault(player, Status.NOT_LOGIN);
         switch (status) {
             case LOGIN -> event.kickMessage(Component.text("§c该账户已登录，禁止顶号，如有异常请联系管理"));
             case REGISTER, NOT_LOGIN, NOT_REGISTER -> player.kick(Component.text("§c异地登录，你被顶下线了，如有异常请联系管理"));
@@ -68,16 +68,16 @@ public class LoginMain extends JavaPlugin implements Listener {
         }
 
         event.getPlayer().setGameMode(GameMode.SPECTATOR);
-        String playerName = event.getPlayer().getName().toLowerCase();
-        File file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+        var playerName = event.getPlayer().getName().toLowerCase();
+        var file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
         if (!file.exists()) {
             onlinePlayers.put(event.getPlayer(), Status.NOT_REGISTER);
             event.getPlayer().sendMessage("§6>>> 请输入/register <密码> <确认密码>, 完成注册");
         } else {
             onlinePlayers.put(event.getPlayer(), Status.NOT_LOGIN);
 
-            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-            PlayerData playerData = new PlayerData().applyConfigSection(yaml);
+            var yaml = YamlConfiguration.loadConfiguration(file);
+            var playerData = new PlayerData().applyConfigSection(yaml);
 
             if (playerData.lastLoginIp.equals(Objects.requireNonNull(event.getPlayer().getAddress()).getAddress().toString())) {
                 event.getPlayer().sendMessage("§a(*) 与上次登录IP相同，自动登录，欢迎回来~");
@@ -95,11 +95,11 @@ public class LoginMain extends JavaPlugin implements Listener {
         if (FloodgateApi.getInstance().getPlayer(event.getPlayer().getUniqueId()) != null) return;
 
         if (onlinePlayers.get(event.getPlayer()) == Status.LOGIN) {
-            String playerName = event.getPlayer().getName().toLowerCase();
-            File file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+            var playerName = event.getPlayer().getName().toLowerCase();
+            var file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
 
-            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-            PlayerData playerData = new PlayerData().applyConfigSection(yaml);
+            var yaml = YamlConfiguration.loadConfiguration(file);
+            var playerData = new PlayerData().applyConfigSection(yaml);
             playerData.lastGameMode = event.getPlayer().getGameMode().getValue();
             yaml = playerData.reflectToConfigSection(yaml);
             yaml.save(file);

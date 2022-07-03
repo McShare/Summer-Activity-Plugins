@@ -12,7 +12,7 @@ public class PlayerData {
     public Integer lastGameMode = GameMode.SURVIVAL.getValue();
 
     public YamlConfiguration reflectToConfigSection(YamlConfiguration yaml) throws Exception {
-        Class<?> dataClazz = this.getClass();
+        var dataClazz = this.getClass();
 
         for (Field field : dataClazz.getDeclaredFields()) {
             yaml.set(field.getName(), field.get(this));
@@ -22,15 +22,15 @@ public class PlayerData {
     }
 
     public PlayerData applyConfigSection(YamlConfiguration section) throws Exception {
-        PlayerData data = new PlayerData();
-        Class<?> dataClazz = data.getClass();
+        var data = new PlayerData();
+        var dataClazz = data.getClass();
 
         for (Field field : dataClazz.getDeclaredFields()) {
-            String name = field.getName();
-            Object value = section.get(name);
+            var name = field.getName();
+            var value = section.get(name);
             if (value == null) {
-                PlayerData self = new PlayerData();
-                Class<?> selfClazz = self.getClass();
+                var self = new PlayerData();
+                var selfClazz = self.getClass();
                 value = selfClazz.getField(name).get(self);
             }
             field.set(data, value);

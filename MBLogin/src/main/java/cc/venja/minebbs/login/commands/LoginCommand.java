@@ -35,12 +35,12 @@ public class LoginCommand implements CommandExecutor {
             return false;
         }
 
-        String playerName = commandSender.getName().toLowerCase();
-        File file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        var playerName = commandSender.getName().toLowerCase();
+        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+        var yaml = YamlConfiguration.loadConfiguration(file);
 
         try {
-            PlayerData playerData = new PlayerData().applyConfigSection(yaml);
+            var playerData = new PlayerData().applyConfigSection(yaml);
             playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
 
             if (playerData.password.equals(Utils.md5DigestAsHex(args[0].getBytes()))) {
