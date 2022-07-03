@@ -3,20 +3,18 @@ package cc.venja.minebbs.login;
 import cc.venja.minebbs.login.commands.LoginCommand;
 import cc.venja.minebbs.login.commands.RegisterCommand;
 import cc.venja.minebbs.login.data.PlayerData;
-import cc.venja.minebbs.login.utils.Utils;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.ChatMessageType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.floodgate.api.FloodgateApi;
 
 import java.io.File;
 import java.util.Map;
@@ -51,7 +49,24 @@ public class LoginMain extends JavaPlugin implements Listener {
 
 
     @EventHandler
+    public void onPreJoin(AsyncPlayerPreLoginEvent event) {
+        Player player = Bukkit.getPlayer(Objects.requireNonNull(event.getPlayerProfile().getName()));
+        if (player == null) return;
+        Status status = onlinePlayers.getOrDefault(player, Status.NOT_LOGIN);
+        switch (status) {
+            case LOGIN -> event.kickMessage(Component.text("§c该账户已登录，禁止顶号，如有异常请联系管理"));
+            case REGISTER, NOT_LOGIN, NOT_REGISTER -> player.kick(Component.text("§c异地登录，你被顶下线了，如有异常请联系管理"));
+        }
+    }
+
+    @EventHandler
     public void onJoin(PlayerJoinEvent event) throws Exception {
+        if (FloodgateApi.getInstance().getPlayer(event.getPlayer().getUniqueId()) != null) {
+            LoginMain.instance.onlinePlayers.put(event.getPlayer(), LoginMain.Status.LOGIN);
+            event.getPlayer().sendMessage("§a(*) 已通过XBox验证，无需登录，欢迎回来~");
+            return;
+        }
+
         event.getPlayer().setGameMode(GameMode.SPECTATOR);
         String playerName = event.getPlayer().getName().toLowerCase();
         File file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
@@ -64,9 +79,6 @@ public class LoginMain extends JavaPlugin implements Listener {
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
             PlayerData playerData = new PlayerData().applyConfigSection(yaml);
 
-            getLogger().info(playerData.lastLoginIp);
-            getLogger().info(Objects.requireNonNull(event.getPlayer().getAddress()).getAddress().toString());
-            getLogger().info(String.valueOf(playerData.lastLoginIp.equals(Objects.requireNonNull(event.getPlayer().getAddress()).getAddress().toString())));
             if (playerData.lastLoginIp.equals(Objects.requireNonNull(event.getPlayer().getAddress()).getAddress().toString())) {
                 event.getPlayer().sendMessage("§a(*) 与上次登录IP相同，自动登录，欢迎回来~");
 
@@ -80,14 +92,18 @@ public class LoginMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) throws Exception {
-        String playerName = event.getPlayer().getName().toLowerCase();
-        File file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+        if (FloodgateApi.getInstance().getPlayer(event.getPlayer().getUniqueId()) != null) return;
 
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        PlayerData playerData = new PlayerData().applyConfigSection(yaml);
-        playerData.lastGameMode = event.getPlayer().getGameMode().getValue();
-        yaml = playerData.reflectToConfigSection(yaml);
-        yaml.save(file);
+        if (onlinePlayers.get(event.getPlayer()) == Status.LOGIN) {
+            String playerName = event.getPlayer().getName().toLowerCase();
+            File file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+
+            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+            PlayerData playerData = new PlayerData().applyConfigSection(yaml);
+            playerData.lastGameMode = event.getPlayer().getGameMode().getValue();
+            yaml = playerData.reflectToConfigSection(yaml);
+            yaml.save(file);
+        }
 
         onlinePlayers.remove(event.getPlayer());
     }
@@ -96,7 +112,15 @@ public class LoginMain extends JavaPlugin implements Listener {
     public void onMove(PlayerMoveEvent event) {
         if (!onlinePlayers.getOrDefault(event.getPlayer(), Status.NOT_REGISTER).equals(Status.LOGIN)) {
             event.setCancelled(true);
-            Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c请先登录后进行游戏"));
+            Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c请先注册/登录后进行游戏"));
+        }
+    }
+
+    @EventHandler
+    public void onChat(AsyncChatEvent event) {
+        if (!onlinePlayers.getOrDefault(event.getPlayer(), Status.NOT_REGISTER).equals(Status.LOGIN)) {
+            event.setCancelled(true);
+            Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c请先注册/登录后进行对话"));
         }
     }
 
@@ -107,6 +131,4 @@ public class LoginMain extends JavaPlugin implements Listener {
         LOGIN,
     }
 
-    public static void main(String[] args) {
-    }
 }
