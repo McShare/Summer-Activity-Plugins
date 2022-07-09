@@ -25,13 +25,19 @@ public class RobotGetTeamHandler implements HttpHandler {
 
             if (requestHeaders.containsKey("PlayerName")) {
                 var playerName = requestHeaders.get("PlayerName").toString();
-                responseBody.write(playerName.getBytes(StandardCharsets.UTF_8));
+                if (RobotMain.instance.team.contains(playerName.toLowerCase())) {
+                    respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
+                    respondDao.respondData = RobotMain.instance.team.getString(playerName);
+                } else {
+                    respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
+                    respondDao.respondData = "Player does not have team.";
+                }
             } else {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "Invalid Header";
-                responseBody.write(RobotMain.gson.toJson(respondDao).getBytes(StandardCharsets.UTF_8));
             }
 
+            responseBody.write(RobotMain.gson.toJson(respondDao).getBytes(StandardCharsets.UTF_8));
             responseBody.close();
         }
     }

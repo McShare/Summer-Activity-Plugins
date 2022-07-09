@@ -15,12 +15,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>net.deechael</groupId>
-            <artifactId>khl</artifactId>
-            <version>1.02.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.19-R0.1-SNAPSHOT</version>
