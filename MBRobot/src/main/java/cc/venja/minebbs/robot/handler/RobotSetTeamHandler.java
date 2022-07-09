@@ -1,7 +1,6 @@
 package cc.venja.minebbs.robot.handler;
 
 import cc.venja.minebbs.robot.RobotMain;
-import cc.venja.minebbs.robot.dao.PlayerDao;
 import cc.venja.minebbs.robot.dao.RespondDao;
 import cc.venja.minebbs.robot.dao.TeamDao;
 import com.sun.net.httpserver.HttpExchange;
@@ -37,7 +36,7 @@ public class RobotSetTeamHandler implements HttpHandler {
             if (teamDao.isValid()) {
                 if (RobotMain.existsWhitelist(teamDao.playerName)) {
                     if (RobotMain.getPlayerKHL(teamDao.playerName).equalsIgnoreCase(teamDao.KHL)) {
-                        if (teamDao.team < 0 || teamDao.team > 3) {
+                        if (teamDao.team > 0 && teamDao.team < 3) {
                             if (!RobotMain.instance.team.contains(teamDao.playerName.toLowerCase())) {
                                 RobotMain.instance.team.set(teamDao.playerName.toLowerCase(), teamDao.team);
                                 RobotMain.instance.team.save(RobotMain.instance.teamFile);
