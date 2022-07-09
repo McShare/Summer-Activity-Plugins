@@ -1,0 +1,5 @@
+name: MBBattle
+main: cc.venja.minebbs.battle.BattleMain
+version: 1.0.0
+author: Kazi-VE
+api-version: 1.13
