@@ -37,16 +37,17 @@ public class RobotSetTeamHandler implements HttpHandler {
                 if (RobotMain.existsWhitelist(teamDao.playerName)) {
                     if (RobotMain.getPlayerKHL(teamDao.playerName).equalsIgnoreCase(teamDao.KHL)) {
                         if (teamDao.team > 0 && teamDao.team < 3) {
-                            if (!RobotMain.instance.team.contains(teamDao.playerName.toLowerCase())) {
-                                RobotMain.instance.team.set(teamDao.playerName.toLowerCase(), teamDao.team);
-                                RobotMain.instance.team.save(RobotMain.instance.teamFile);
+                            if (!RobotMain.existsPlayerTeam(teamDao.playerName)) {
+                                RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
+                                respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
+                                respondDao.respondData = "Team added";
                             } else {
                                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                                respondDao.respondData = "Player already have team.";
+                                respondDao.respondData = "Player already have team";
                             }
                         } else {
                             respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                            respondDao.respondData = "Team invalid. Must be 0 - 3.";
+                            respondDao.respondData = "Team invalid. Must be 0 - 3";
                         }
                     } else {
                         respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();

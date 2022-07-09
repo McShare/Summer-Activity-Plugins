@@ -34,11 +34,11 @@ public class RobotWhitelistHandler implements HttpHandler {
             var playerDao = RobotMain.gson.fromJson(body.toString(), PlayerDao.class);
             var respondDao = new RespondDao();
             if (playerDao.isValid()) {
-                if (RobotMain.existsWhitelist(playerDao)) {
+                if (RobotMain.existsWhitelist(playerDao.playerName)) {
                     respondDao.respondCode = RespondDao.RespondCode.EXISTED.getValue();
                     respondDao.respondData = "Player already added to whitelist";
                 } else {
-                    RobotMain.addWhitelist(playerDao);
+                    RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
                     respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
                     respondDao.respondData = "Whitelist added";
                 }

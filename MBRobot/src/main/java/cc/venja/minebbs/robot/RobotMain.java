@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 public class RobotMain extends JavaPlugin implements Listener {
@@ -84,48 +85,56 @@ public class RobotMain extends JavaPlugin implements Listener {
         server.stop(1);
     }
 
-    @EventHandler (
+    @EventHandler(
             priority = EventPriority.LOWEST
     )
     public void onPreJoin(AsyncPlayerPreLoginEvent event) {
-        if (!existsWhitelist(new PlayerDao(event.getPlayerProfile().getName()))) {
+        if (!existsWhitelist(Objects.requireNonNull(event.getPlayerProfile().getName()))) {
             event.kickMessage(Component.text("§c你不在本服务器白名单内"));
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST);
         }
     }
 
-    public static void addWhitelist(PlayerDao player) throws IOException {
-        addWhitelist(player.playerName, player.KHL);
-    }
-
+    /**
+     * Whitelist APIs
+     */
     public static void addWhitelist(String player, String KHL) throws IOException {
         instance.whitelist.set(player.toLowerCase(), KHL);
         instance.whitelist.save(instance.whitelistFile);
     }
 
-    public static boolean existsWhitelist(PlayerDao player) {
-        return existsWhitelist(player.playerName);
+    public static void removeWhitelist(String player) throws IOException {
+        instance.whitelist.set(player.toLowerCase(), null);
+        instance.whitelist.save(instance.whitelistFile);
     }
 
     public static boolean existsWhitelist(String player) {
         return instance.whitelist.contains(player.toLowerCase());
     }
 
-    public static String getPlayerKHL(PlayerDao player) {
-        return getPlayerKHL(player.playerName);
-    }
-
     public static String getPlayerKHL(String player) {
         return instance.whitelist.getString(player.toLowerCase());
     }
 
-    public static void removeWhitelist(PlayerDao player) throws IOException {
-        removeWhitelist(player.playerName);
+    /**
+     * Team APIs
+     */
+    public static void addPlayerTeam(String player, int team) throws IOException {
+        instance.team.set(player.toLowerCase(), team);
+        instance.team.save(instance.teamFile);
     }
 
-    public static void removeWhitelist(String player) throws IOException {
-        instance.whitelist.set(player, null);
-        instance.whitelist.save(instance.whitelistFile);
+    public static void removePlayerTeam(String player) throws IOException {
+        instance.team.set(player.toLowerCase(), null);
+        instance.team.save(instance.teamFile);
+    }
+
+    public static boolean existsPlayerTeam(String player) {
+        return instance.team.contains(player.toLowerCase());
+    }
+
+    public static int getPlayerTeam(String player) {
+        return instance.team.getInt(player.toLowerCase());
     }
 
 }
