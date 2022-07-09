@@ -9,7 +9,9 @@ public enum Team {
     RED(0),
     BLUE(1),
     GREY(2),
-    YELLOW(3);
+    YELLOW(3),
+    IMPOSTER(4),
+    ADMIN(5);
 
     final int value;
     static final Map<Integer, Team> BY_ID = new HashMap<>();
