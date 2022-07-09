@@ -10,6 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
+import cc.venja.minebbs.robot.RobotMain;
+
 public class BattleMain extends JavaPlugin implements Listener {
     public static BattleMain instance;
 
@@ -18,20 +20,9 @@ public class BattleMain extends JavaPlugin implements Listener {
         instance = this;
     }
 
-    public File teamFile;
-    public YamlConfiguration team;
-
     @Override
     public void onEnable() {
-        try {
-            teamFile = new File(this.getDataFolder().toPath().resolve("team.yml").toString()).getAbsoluteFile();
-            team = YamlConfiguration.loadConfiguration(teamFile);
-            team.save(teamFile);
-
-            this.getServer().getPluginManager().registerEvents(this, this);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.getServer().getPluginManager().registerEvents(this, this);
     }
 
     @EventHandler
@@ -39,13 +30,9 @@ public class BattleMain extends JavaPlugin implements Listener {
         Entity damager = event.getDamager();
         Entity damagee = event.getEntity();
         if (damager.getType().equals(EntityType.PLAYER) && damagee.getType().equals(EntityType.PLAYER)) {
-            if (getPlayerTeam(damager.getName()) == getPlayerTeam(damagee.getName())) {
+            if (RobotMain.getPlayerTeam(damager.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
                 event.setCancelled(true);
             }
         }
-    }
-
-    public static int getPlayerTeam(String player) {
-        return instance.team.getInt(player.toLowerCase());
     }
 }
