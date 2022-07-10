@@ -1,6 +1,7 @@
 package cc.venja.minebbs.robot;
 
 import cc.venja.minebbs.robot.dao.PlayerDao;
+import cc.venja.minebbs.robot.handler.RobotDelWhitelistHandler;
 import cc.venja.minebbs.robot.handler.RobotGetTeamHandler;
 import cc.venja.minebbs.robot.handler.RobotSetTeamHandler;
 import cc.venja.minebbs.robot.handler.RobotWhitelistHandler;
@@ -66,6 +67,7 @@ public class RobotMain extends JavaPlugin implements Listener {
         try {
             server = HttpServer.create(address, 0);
 
+            server.createContext("/delwhitelist", new RobotDelWhitelistHandler());
             server.createContext("/whitelist", new RobotWhitelistHandler());
             server.createContext("/getteam", new RobotGetTeamHandler());
             server.createContext("/setteam", new RobotSetTeamHandler());

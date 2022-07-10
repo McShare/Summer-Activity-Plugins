@@ -1,8 +1,8 @@
 package cc.venja.minebbs.robot.handler;
 
 import cc.venja.minebbs.robot.RobotMain;
+import cc.venja.minebbs.robot.dao.PlayerDao;
 import cc.venja.minebbs.robot.dao.RespondDao;
-import cc.venja.minebbs.robot.dao.TeamDao;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-public class RobotSetTeamHandler implements HttpHandler {
+public class RobotDelWhitelistHandler implements HttpHandler {
 
     public void handle(HttpExchange exchange) throws IOException {
         var requestMethod = exchange.getRequestMethod();
@@ -27,31 +27,21 @@ public class RobotSetTeamHandler implements HttpHandler {
 
             var responseBody = exchange.getResponseBody();
 
-            var teamDao = RobotMain.gson.fromJson(body.toString(), TeamDao.class);
+            var playerDao = RobotMain.gson.fromJson(body.toString(), PlayerDao.class);
             var respondDao = new RespondDao();
-            if (teamDao.isValid()) {
-                if (RobotMain.existsWhitelist(teamDao.playerName)) {
-                    if (RobotMain.getPlayerKHL(teamDao.playerName).equalsIgnoreCase(teamDao.KHL)) {
-                        if (teamDao.team > 0 && teamDao.team < 3) {
-                            if (!RobotMain.existsPlayerTeam(teamDao.playerName)) {
-                                RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
-                                respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
-                                respondDao.respondData = "Team added";
-                            } else {
-                                respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                                respondDao.respondData = "Player already have team";
-                            }
-                        } else {
-                            respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                            respondDao.respondData = "Team invalid. Must be 0 - 3";
-                        }
+            if (playerDao.isValid()) {
+                if (RobotMain.existsWhitelist(playerDao.playerName)) {
+                    if (RobotMain.getPlayerKHL(playerDao.playerName).equalsIgnoreCase(playerDao.KHL)) {
+                        RobotMain.removeWhitelist(playerDao.playerName);
+                        respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
+                        respondDao.respondData = "Removed whitelist";
                     } else {
                         respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                        respondDao.respondData = "Player's KHL account is not matched";
+                        respondDao.respondData = "KHL account not match to record";
                     }
                 } else {
                     respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                    respondDao.respondData = "Player does not have whitelist";
+                    respondDao.respondData = "Player don't have a whitelist yet";
                 }
             } else {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
@@ -61,7 +51,6 @@ public class RobotSetTeamHandler implements HttpHandler {
             var responseHeaders = exchange.getResponseHeaders();
             responseHeaders.set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(respondDao.respondCode, 0);
-
 
             responseBody.write(RobotMain.gson.toJson(respondDao).getBytes(StandardCharsets.UTF_8));
             responseBody.close();

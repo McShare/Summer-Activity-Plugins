@@ -14,10 +14,6 @@ public class RobotGetTeamHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         var requestMethod = exchange.getRequestMethod();
         if (requestMethod.equalsIgnoreCase("GET")) {
-            var responseHeaders = exchange.getResponseHeaders();
-            responseHeaders.set("Content-Type", "text/plain");
-            exchange.sendResponseHeaders(200, 0);
-
             var requestHeaders = exchange.getRequestHeaders();
 
             var respondDao = new RespondDao();
@@ -36,6 +32,10 @@ public class RobotGetTeamHandler implements HttpHandler {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "Invalid Header";
             }
+
+            var responseHeaders = exchange.getResponseHeaders();
+            responseHeaders.set("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(respondDao.respondCode, 0);
 
             responseBody.write(RobotMain.gson.toJson(respondDao).getBytes(StandardCharsets.UTF_8));
             responseBody.close();

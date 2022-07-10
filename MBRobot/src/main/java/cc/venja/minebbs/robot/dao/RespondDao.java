@@ -22,7 +22,6 @@ public class RespondDao {
 
     public enum RespondCode {
         NULL(100),
-        EXISTED(110),
         FAILED(500),
         SUCCESS(200);
 

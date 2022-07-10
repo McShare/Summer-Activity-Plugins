@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -16,10 +17,6 @@ public class RobotWhitelistHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         var requestMethod = exchange.getRequestMethod();
         if (requestMethod.equalsIgnoreCase("POST")) {
-            var responseHeaders = exchange.getResponseHeaders();
-            responseHeaders.set("Content-Type", "text/plain");
-            exchange.sendResponseHeaders(200, 0);
-
             var inputStream = exchange.getRequestBody();
             var body = new StringBuilder();
             try (var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -33,9 +30,10 @@ public class RobotWhitelistHandler implements HttpHandler {
 
             var playerDao = RobotMain.gson.fromJson(body.toString(), PlayerDao.class);
             var respondDao = new RespondDao();
+            Bukkit.getLogger().info(String.valueOf(playerDao.isValid()));
             if (playerDao.isValid()) {
                 if (RobotMain.existsWhitelist(playerDao.playerName)) {
-                    respondDao.respondCode = RespondDao.RespondCode.EXISTED.getValue();
+                    respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                     respondDao.respondData = "Player already added to whitelist";
                 } else {
                     RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
@@ -46,6 +44,10 @@ public class RobotWhitelistHandler implements HttpHandler {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "POST Body invalid";
             }
+
+            var responseHeaders = exchange.getResponseHeaders();
+            responseHeaders.set("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(respondDao.respondCode, 0);
 
             responseBody.write(RobotMain.gson.toJson(respondDao).getBytes(StandardCharsets.UTF_8));
             responseBody.close();
