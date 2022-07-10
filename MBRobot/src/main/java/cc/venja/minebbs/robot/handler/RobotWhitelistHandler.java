@@ -3,8 +3,6 @@ package cc.venja.minebbs.robot.handler;
 import cc.venja.minebbs.robot.RobotMain;
 import cc.venja.minebbs.robot.dao.PlayerDao;
 import cc.venja.minebbs.robot.dao.RespondDao;
-import com.google.gson.Gson;
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.bukkit.Bukkit;
@@ -17,15 +15,9 @@ public class RobotWhitelistHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         var requestMethod = exchange.getRequestMethod();
         if (requestMethod.equalsIgnoreCase("POST")) {
-            var inputStream = exchange.getRequestBody();
-            var body = new StringBuilder();
-            try (var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                int c;
-                while ((c = reader.read()) != -1) {
-                    body.append((char) c);
-                }
-            }
+            var body = RobotMain.inputStreamToString(exchange.getRequestBody());
 
+            var responseHeaders = exchange.getResponseHeaders();
             var responseBody = exchange.getResponseBody();
 
             var playerDao = RobotMain.gson.fromJson(body.toString(), PlayerDao.class);
@@ -45,7 +37,6 @@ public class RobotWhitelistHandler implements HttpHandler {
                 respondDao.respondData = "POST Body invalid";
             }
 
-            var responseHeaders = exchange.getResponseHeaders();
             responseHeaders.set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(respondDao.respondCode, 0);
 

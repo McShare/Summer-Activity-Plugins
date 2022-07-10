@@ -16,9 +16,10 @@ public class RobotGetTeamHandler implements HttpHandler {
         if (requestMethod.equalsIgnoreCase("GET")) {
             var requestHeaders = exchange.getRequestHeaders();
 
-            var respondDao = new RespondDao();
+            var responseHeaders = exchange.getResponseHeaders();
             var responseBody = exchange.getResponseBody();
 
+            var respondDao = new RespondDao();
             if (requestHeaders.containsKey("PlayerName")) {
                 var playerName = requestHeaders.get("PlayerName").toString();
                 if (RobotMain.existsPlayerTeam(playerName)) {
@@ -33,7 +34,6 @@ public class RobotGetTeamHandler implements HttpHandler {
                 respondDao.respondData = "Invalid Header";
             }
 
-            var responseHeaders = exchange.getResponseHeaders();
             responseHeaders.set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(respondDao.respondCode, 0);
 

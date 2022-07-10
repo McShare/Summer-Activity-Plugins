@@ -14,10 +14,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.floodgate.api.FloodgateApi;
+import org.geysermc.floodgate.api.player.FloodgatePlayer;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 
@@ -91,7 +93,12 @@ public class RobotMain extends JavaPlugin implements Listener {
             priority = EventPriority.LOWEST
     )
     public void onPreJoin(AsyncPlayerPreLoginEvent event) {
-        if (!existsWhitelist(Objects.requireNonNull(event.getPlayerProfile().getName()))) {
+        var playerName = event.getPlayerProfile().getName();
+        var floodgatePlayer = FloodgateApi.getInstance().getPlayer(event.getPlayerProfile().getId());
+        if (floodgatePlayer != null) {
+            playerName = floodgatePlayer.getUsername();
+        }
+        if (!existsWhitelist(Objects.requireNonNull(playerName))) {
             event.kickMessage(Component.text("§c你不在本服务器白名单内"));
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST);
         }
@@ -139,4 +146,14 @@ public class RobotMain extends JavaPlugin implements Listener {
         return instance.team.getInt(player.toLowerCase());
     }
 
+    public static StringBuilder inputStreamToString(InputStream inputStream) throws IOException {
+        var body = new StringBuilder();
+        try (var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            int c;
+            while ((c = reader.read()) != -1) {
+                body.append((char) c);
+            }
+        }
+        return body;
+    }
 }

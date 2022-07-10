@@ -6,9 +6,7 @@ import cc.venja.minebbs.robot.dao.TeamDao;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class RobotSetTeamHandler implements HttpHandler {
@@ -16,15 +14,9 @@ public class RobotSetTeamHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         var requestMethod = exchange.getRequestMethod();
         if (requestMethod.equalsIgnoreCase("POST")) {
-            var inputStream = exchange.getRequestBody();
-            var body = new StringBuilder();
-            try (var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                int c;
-                while ((c = reader.read()) != -1) {
-                    body.append((char) c);
-                }
-            }
+            var body = RobotMain.inputStreamToString(exchange.getRequestBody());
 
+            var responseHeaders = exchange.getResponseHeaders();
             var responseBody = exchange.getResponseBody();
 
             var teamDao = RobotMain.gson.fromJson(body.toString(), TeamDao.class);
@@ -58,7 +50,6 @@ public class RobotSetTeamHandler implements HttpHandler {
                 respondDao.respondData = "POST Body invalid";
             }
 
-            var responseHeaders = exchange.getResponseHeaders();
             responseHeaders.set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(respondDao.respondCode, 0);
 
