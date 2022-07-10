@@ -1,15 +1,20 @@
 package cc.venja.minebbs.battle;
 
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
+import cc.venja.minebbs.battle.enums.Team;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -42,10 +47,12 @@ public class BattleMain extends JavaPlugin implements Listener {
                     }
                 };
 
-                configuration.set("TeamRed", teamConfig);
-                configuration.set("TeamBlue", teamConfig);
-                configuration.set("TeamGray", teamConfig);
-                configuration.set("TeamYellow", teamConfig);
+                configuration.set("TeamRED", teamConfig);
+                configuration.set("TeamBLUE", teamConfig);
+                configuration.set("TeamGRAY", teamConfig);
+                configuration.set("TeamYELLOW", teamConfig);
+
+                configuration.set("RespawnCooldown", 20);
             }
 
             configuration.save(configFile);
@@ -65,5 +72,36 @@ public class BattleMain extends JavaPlugin implements Listener {
                 event.setCancelled(true);
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerPostRespawnEvent event) {
+        Player player = event.getPlayer();
+        Location location = event.getRespawnedLocation();
+
+        var teamValue = RobotMain.getPlayerTeam(event.getPlayer().getName());
+        String team = "Team" + Team.getByValue(teamValue);
+
+        List<Integer> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
+                getIntegerList("RespawnPosition");
+        World world = location.getWorld();
+        int x = respawnPosition.get(0);
+        int y = respawnPosition.get(1);
+        int z = respawnPosition.get(2);
+
+        Location respawnLocation = new Location(world, x, y, z);
+
+        player.teleport(respawnLocation);
+        player.setBedSpawnLocation(respawnLocation, true);
+        player.setGameMode(GameMode.SPECTATOR);
+        new Thread(() -> {
+            try {
+                Thread.sleep(configuration.getInt("RespawnCooldown"));
+                player.teleport(respawnLocation);
+                player.setGameMode(GameMode.SURVIVAL);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
