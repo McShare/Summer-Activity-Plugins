@@ -21,7 +21,7 @@ public class RobotGetTeamHandler implements HttpHandler {
 
             var respondDao = new RespondDao();
             if (requestHeaders.containsKey("PlayerName")) {
-                var playerName = requestHeaders.get("PlayerName").toString();
+                var playerName = requestHeaders.get("PlayerName").get(0);
                 if (RobotMain.existsPlayerTeam(playerName)) {
                     respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
                     respondDao.respondData = String.valueOf(RobotMain.getPlayerTeam(playerName));
