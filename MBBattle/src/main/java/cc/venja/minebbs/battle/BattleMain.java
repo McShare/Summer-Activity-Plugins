@@ -94,9 +94,7 @@ public class BattleMain extends JavaPlugin implements Listener {
         player.teleport(respawnLocation);
         player.setBedSpawnLocation(respawnLocation, true);
         player.setGameMode(GameMode.SPECTATOR);
-        this.getLogger().info("start timer");
         Bukkit.getScheduler().runTaskLater(this, () -> {
-            this.getLogger().info("end timer");
             player.teleport(respawnLocation);
             player.setGameMode(GameMode.SURVIVAL);
         }, configuration.getInt("RespawnCooldown") * 20L);
