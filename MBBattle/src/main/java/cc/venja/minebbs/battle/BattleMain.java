@@ -43,7 +43,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             if (!configExists) {
                 Map<String, Object> teamConfig = new HashMap<>() {
                     {
-                        put("RespawnPosition", new int[] {0, 0, 0});
+                        put("RespawnPosition", new double[] {0, 0, 0});
                     }
                 };
 
@@ -82,12 +82,12 @@ public class BattleMain extends JavaPlugin implements Listener {
         var teamValue = RobotMain.getPlayerTeam(event.getPlayer().getName());
         String team = "Team" + Team.getByValue(teamValue);
 
-        List<Integer> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
-                getIntegerList("RespawnPosition");
+        List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
+                getDoubleList("RespawnPosition");
         World world = location.getWorld();
-        int x = respawnPosition.get(0);
-        int y = respawnPosition.get(1);
-        int z = respawnPosition.get(2);
+        double x = respawnPosition.get(0);
+        double y = respawnPosition.get(1);
+        double z = respawnPosition.get(2);
 
         Location respawnLocation = new Location(world, x, y, z);
 
