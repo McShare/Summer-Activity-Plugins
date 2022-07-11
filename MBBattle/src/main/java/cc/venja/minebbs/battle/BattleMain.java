@@ -1,6 +1,7 @@
 package cc.venja.minebbs.battle;
 
 import cc.venja.minebbs.battle.enums.Team;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -14,7 +15,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -94,14 +94,11 @@ public class BattleMain extends JavaPlugin implements Listener {
         player.teleport(respawnLocation);
         player.setBedSpawnLocation(respawnLocation, true);
         player.setGameMode(GameMode.SPECTATOR);
-        new Thread(() -> {
-            try {
-                Thread.sleep(configuration.getInt("RespawnCooldown"));
-                player.teleport(respawnLocation);
-                player.setGameMode(GameMode.SURVIVAL);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        this.getLogger().info("start timer");
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            this.getLogger().info("end timer");
+            player.teleport(respawnLocation);
+            player.setGameMode(GameMode.SURVIVAL);
+        }, configuration.getInt("RespawnCooldown") * 20L);
     }
 }
