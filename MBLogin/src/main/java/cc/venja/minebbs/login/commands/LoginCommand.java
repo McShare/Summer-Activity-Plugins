@@ -37,7 +37,7 @@ public class LoginCommand implements CommandExecutor {
         try {
             var playerName = commandSender.getName();
             PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-            PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
+            PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
 
             user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
 

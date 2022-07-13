@@ -42,16 +42,6 @@ public class PlayerInfoDao {
         statement.execute();
     }
 
-    public void delPlayerByName(PlayerInfo playerInfo) throws SQLException {
-        String sql = "del from player_info where player_name=?";
-
-        PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
-
-        statement.setString(1, playerInfo.getUsername());
-
-        statement.execute();
-    }
-
     public List<PlayerInfo> query() throws SQLException {
         Statement statement = LoginMain.instance.databaseConnection.createStatement();
         ResultSet resultSet = statement.executeQuery("select * from player_info");
@@ -72,13 +62,14 @@ public class PlayerInfoDao {
         return players;
     }
 
-    public PlayerInfo queryByPlayerName(String player_name) throws SQLException {
+    public PlayerInfo getPlayerByName(String playerName) throws SQLException {
         String sql = "select * from player_info where player_name=?";
         PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
-        statement.setString(1, player_name);
+        statement.setString(1, playerName);
 
         ResultSet resultSet = statement.executeQuery();
         PlayerInfo player = null;
+
         while (resultSet.next()) {
             player = new PlayerInfo();
             player.setPlayerName(resultSet.getString("player_name"));
@@ -89,5 +80,15 @@ public class PlayerInfoDao {
         }
 
         return player;
+    }
+
+    public void delPlayerByName(String playerName) throws SQLException {
+        String sql = "del from player_info where player_name=?";
+
+        PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
+
+        statement.setString(1, playerName);
+
+        statement.execute();
     }
 }

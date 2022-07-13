@@ -29,7 +29,7 @@ public class AutoLoginCommand implements CommandExecutor {
         try {
             var playerName = commandSender.getName();
             PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-            PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
+            PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
 
             user.setEnableAutoLogin(!user.isEnableAutoLogin());
 

@@ -122,7 +122,7 @@ public class LoginMain extends JavaPlugin implements Listener {
         var playerName = event.getPlayer().getName();
 
         PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-        PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
+        PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
 
         if (user == null) {
             onlinePlayers.put(event.getPlayer(), Status.NOT_REGISTER);
@@ -174,7 +174,7 @@ public class LoginMain extends JavaPlugin implements Listener {
             var playerName = event.getPlayer().getName();
 
             var playerDao = new PlayerInfoDao();
-            PlayerInfo player = playerDao.queryByPlayerName(playerName);
+            PlayerInfo player = playerDao.getPlayerByName(playerName);
             player.setLastGameMode(event.getPlayer().getGameMode().getValue());
             playerDao.updatePlayer(player);
 

@@ -38,7 +38,7 @@ public class RegisterCommand implements CommandExecutor {
         try {
             var playerName = commandSender.getName();
             PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-            PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
+            PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
 
             if (user != null) {
                 commandSender.sendMessage("§c(!) 该账户已完成注册");
