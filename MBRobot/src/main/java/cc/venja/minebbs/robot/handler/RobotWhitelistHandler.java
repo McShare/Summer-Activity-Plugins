@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class RobotWhitelistHandler implements HttpHandler {
 
@@ -31,10 +32,9 @@ public class RobotWhitelistHandler implements HttpHandler {
                 } else {
                     RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
                     respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
-                    respondDao.respondData = "Whitelist added";
-
                     try {
                         RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue());
+                        respondDao.respondData = String.valueOf(Objects.requireNonNull(RobotMain.getPlayerTeam(playerDao.playerName)).getValue());
                     } catch (SQLException e) {
                         RobotMain.instance.getLogger().info(e.toString());
                     }
