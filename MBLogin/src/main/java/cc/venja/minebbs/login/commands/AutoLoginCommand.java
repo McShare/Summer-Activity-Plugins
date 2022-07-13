@@ -1,20 +1,13 @@
 package cc.venja.minebbs.login.commands;
 
 import cc.venja.minebbs.login.LoginMain;
-import cc.venja.minebbs.login.data.PlayerData;
-import cc.venja.minebbs.login.database.UserInfo;
-import cc.venja.minebbs.login.database.UserInfoDao;
-import cc.venja.minebbs.login.utils.Utils;
-import org.bukkit.GameMode;
+import cc.venja.minebbs.login.database.PlayerInfo;
+import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.Objects;
 
 public class AutoLoginCommand implements CommandExecutor {
 
@@ -35,8 +28,8 @@ public class AutoLoginCommand implements CommandExecutor {
 
         try {
             var playerName = commandSender.getName();
-            UserInfoDao userInfoDao = new UserInfoDao();
-            UserInfo user = userInfoDao.queryByUsername(playerName);
+            PlayerInfoDao playerInfoDao = new PlayerInfoDao();
+            PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
 
             user.setEnableAutoLogin(!user.isEnableAutoLogin());
 
@@ -46,7 +39,7 @@ public class AutoLoginCommand implements CommandExecutor {
                 commandSender.sendMessage("§a(*) 关闭同IP自动登录~");
             }
 
-            userInfoDao.updateUser(user);
+            playerInfoDao.updatePlayer(user);
         } catch (Exception e) {
             LoginMain.instance.getLogger().warning(e.toString());
         }

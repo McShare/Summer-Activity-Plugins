@@ -3,9 +3,8 @@ package cc.venja.minebbs.login;
 import cc.venja.minebbs.login.commands.AutoLoginCommand;
 import cc.venja.minebbs.login.commands.LoginCommand;
 import cc.venja.minebbs.login.commands.RegisterCommand;
-import cc.venja.minebbs.login.data.PlayerData;
-import cc.venja.minebbs.login.database.UserInfo;
-import cc.venja.minebbs.login.database.UserInfoDao;
+import cc.venja.minebbs.login.database.PlayerInfo;
+import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -24,8 +23,6 @@ import org.geysermc.floodgate.api.FloodgateApi;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -68,7 +65,7 @@ public class LoginMain extends JavaPlugin implements Listener {
             if (!configExists) {
                 Map<String, Object> databaseConfig = new HashMap<>() {
                     {
-                        put("Host", "127.0.0.1:3306/player");
+                        put("Host", "127.0.0.1:3306/database");
                         put("Username", "username");
                         put("Password", "password");
                     }
@@ -124,8 +121,8 @@ public class LoginMain extends JavaPlugin implements Listener {
         event.getPlayer().setGameMode(GameMode.SPECTATOR);
         var playerName = event.getPlayer().getName();
 
-        UserInfoDao userInfoDao = new UserInfoDao();
-        UserInfo user = userInfoDao.queryByUsername(playerName);
+        PlayerInfoDao playerInfoDao = new PlayerInfoDao();
+        PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
 
         if (user == null) {
             onlinePlayers.put(event.getPlayer(), Status.NOT_REGISTER);
@@ -176,12 +173,10 @@ public class LoginMain extends JavaPlugin implements Listener {
         if (onlinePlayers.get(event.getPlayer()) == Status.LOGIN) {
             var playerName = event.getPlayer().getName();
 
-            String sql = "update user_info set last_game_mode=? where username=?";
-            PreparedStatement statement = databaseConnection.prepareStatement(sql);
-            statement.setInt(1, event.getPlayer().getGameMode().getValue());
-            statement.setString(2, playerName);
-
-            statement.execute();
+            var playerDao = new PlayerInfoDao();
+            PlayerInfo player = playerDao.queryByPlayerName(playerName);
+            player.setLastGameMode(event.getPlayer().getGameMode().getValue());
+            playerDao.updatePlayer(player);
 
 //            var playerName = event.getPlayer().getName().toLowerCase();
 //            var file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());

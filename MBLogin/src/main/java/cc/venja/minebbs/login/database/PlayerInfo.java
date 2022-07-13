@@ -1,18 +1,18 @@
 package cc.venja.minebbs.login.database;
 
-public class UserInfo {
-    private String username;
+public class PlayerInfo {
+    private String playerName;
     private String password;
     private String lastLoginIp;
     private int lastGameMode;
     private boolean enableAutoLogin;
 
     public String getUsername() {
-        return username;
+        return playerName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
     }
 
     public String getPassword() {

@@ -1,19 +1,16 @@
 package cc.venja.minebbs.login.commands;
 
 import cc.venja.minebbs.login.LoginMain;
-import cc.venja.minebbs.login.data.PlayerData;
-import cc.venja.minebbs.login.database.UserInfo;
-import cc.venja.minebbs.login.database.UserInfoDao;
+import cc.venja.minebbs.login.database.PlayerInfo;
+import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import cc.venja.minebbs.login.utils.Utils;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.Objects;
 
@@ -40,8 +37,8 @@ public class RegisterCommand implements CommandExecutor {
 
         try {
             var playerName = commandSender.getName();
-            UserInfoDao userInfoDao = new UserInfoDao();
-            UserInfo user = userInfoDao.queryByUsername(playerName);
+            PlayerInfoDao playerInfoDao = new PlayerInfoDao();
+            PlayerInfo user = playerInfoDao.queryByPlayerName(playerName);
 
             if (user != null) {
                 commandSender.sendMessage("§c(!) 该账户已完成注册");
@@ -52,12 +49,12 @@ public class RegisterCommand implements CommandExecutor {
                     return false;
                 }
 
-                user = new UserInfo();
-                user.setUsername(playerName);
+                user = new PlayerInfo();
+                user.setPlayerName(playerName);
                 user.setPassword(Utils.md5DigestAsHex(args[0].getBytes()));
                 user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
 
-                userInfoDao.addUser(user);
+                playerInfoDao.addPlayer(user);
 
                 commandSender.sendMessage("§a(*) 注册成功，欢迎加入~");
 
