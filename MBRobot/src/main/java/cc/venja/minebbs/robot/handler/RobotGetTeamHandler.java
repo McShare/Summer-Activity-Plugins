@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 
 public class RobotGetTeamHandler implements HttpHandler {
 
@@ -22,12 +23,16 @@ public class RobotGetTeamHandler implements HttpHandler {
             var respondDao = new RespondDao();
             if (requestHeaders.containsKey("PlayerName")) {
                 var playerName = requestHeaders.get("PlayerName").get(0);
-                if (RobotMain.existsPlayerTeam(playerName)) {
-                    respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
-                    respondDao.respondData = String.valueOf(RobotMain.getPlayerTeam(playerName));
-                } else {
-                    respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                    respondDao.respondData = "Player does not have team.";
+                try {
+                    if (RobotMain.existsPlayerTeam(playerName)) {
+                        respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
+                        respondDao.respondData = String.valueOf(RobotMain.getPlayerTeam(playerName));
+                    } else {
+                        respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
+                        respondDao.respondData = "Player does not have team.";
+                    }
+                } catch (SQLException e) {
+                    RobotMain.instance.getLogger().info(e.toString());
                 }
             } else {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();

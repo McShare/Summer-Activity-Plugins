@@ -1,6 +1,8 @@
 package cc.venja.minebbs.robot;
 
-import cc.venja.minebbs.robot.dao.PlayerDao;
+import cc.venja.minebbs.login.enums.Team;
+import cc.venja.minebbs.login.database.PlayerInfo;
+import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import cc.venja.minebbs.robot.handler.RobotDelWhitelistHandler;
 import cc.venja.minebbs.robot.handler.RobotGetTeamHandler;
 import cc.venja.minebbs.robot.handler.RobotSetTeamHandler;
@@ -15,12 +17,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
-import org.geysermc.floodgate.api.player.FloodgatePlayer;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 public class RobotMain extends JavaPlugin implements Listener {
@@ -82,6 +86,12 @@ public class RobotMain extends JavaPlugin implements Listener {
         }
 
         getServer().getPluginManager().registerEvents(this, this);
+        try {
+            updateLocalDataToDatabase();
+            reloadTeamListMap();
+        } catch (SQLException e) {
+            getLogger().info(e.toString());
+        }
     }
 
     @Override
@@ -128,22 +138,84 @@ public class RobotMain extends JavaPlugin implements Listener {
     /**
      * Team APIs
      */
-    public static void addPlayerTeam(String player, int team) throws IOException {
-        instance.team.set(player.toLowerCase(), team);
-        instance.team.save(instance.teamFile);
+    public static Map<Team, List<String>> teamListMap = new ConcurrentHashMap<>();
+
+    private static void updateLocalDataToDatabase() throws SQLException {
+        for (String player : instance.team.getKeys(false)) {
+            updatePlayer(player, instance.team.getInt(player));
+        }
     }
 
-    public static void removePlayerTeam(String player) throws IOException {
-        instance.team.set(player.toLowerCase(), null);
-        instance.team.save(instance.teamFile);
+    public static void reloadTeamListMap() throws SQLException {
+        PlayerInfoDao dao = new PlayerInfoDao();
+        for (Team team : Team.values()) {
+            List<String> players = new ArrayList<>();
+            for (PlayerInfo playerInfo : dao.queryPlayersByTeam(team.getValue())) {
+                players.add(playerInfo.getPlayerName());
+            }
+            teamListMap.put(team, players);
+        }
     }
 
-    public static boolean existsPlayerTeam(String player) {
-        return instance.team.contains(player.toLowerCase());
+    public static void addPlayerTeam(String player, int team) throws SQLException {
+        updatePlayer(player, team);
+
+        List<String> players = teamListMap.get(Team.getByValue(team));
+        players.add(player);
+        teamListMap.put(Team.getByValue(team), players);
     }
 
-    public static int getPlayerTeam(String player) {
-        return instance.team.getInt(player.toLowerCase());
+    public static void removePlayerTeam(String player) throws SQLException {
+        Team team = getPlayerTeam(player);
+        updatePlayer(player, -1);
+
+        List<String> players = teamListMap.get(team);
+        players.add(player);
+        teamListMap.put(team, players);
+    }
+
+    private static void updatePlayer(String player, int team) throws SQLException {
+        PlayerInfoDao dao = new PlayerInfoDao();
+        PlayerInfo playerInfo = dao.getPlayerByName(player);
+        if (playerInfo == null) {
+            dao.addPlayer(new PlayerInfo(player, "", team, "", 0, true));
+        } else {
+            playerInfo.setTeam(instance.team.getInt(player));
+            dao.updatePlayer(playerInfo);
+        }
+    }
+
+    public static boolean existsPlayerTeam(String player) throws SQLException {
+        PlayerInfoDao dao = new PlayerInfoDao();
+        PlayerInfo playerInfo = dao.getPlayerByName(player);
+        if (playerInfo == null) {
+            return false;
+        }
+        return playerInfo.getTeam() != -1;
+    }
+
+    @Nullable
+    public static Team getPlayerTeam(String player) throws SQLException {
+        PlayerInfoDao dao = new PlayerInfoDao();
+        PlayerInfo playerInfo = dao.getPlayerByName(player);
+        if (playerInfo == null) {
+            return null;
+        }
+        return Team.getByValue(playerInfo.getTeam());
+    }
+
+    public static Team getLowestMemberTeam() {
+        int tempNum = 9999;
+        Team team = Team.RED;
+        for (Map.Entry<Team, List<String>> entry : teamListMap.entrySet()) {
+            Team key = entry.getKey();
+            if (key.getValue() <= 3) {
+                if (entry.getValue().size() < tempNum) {
+                    team = key;
+                }
+            }
+        }
+        return team;
     }
 
     public static StringBuilder inputStreamToString(InputStream inputStream) throws IOException {

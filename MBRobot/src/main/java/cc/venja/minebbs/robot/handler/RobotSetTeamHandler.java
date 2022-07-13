@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 
 public class RobotSetTeamHandler implements HttpHandler {
 
@@ -25,14 +26,18 @@ public class RobotSetTeamHandler implements HttpHandler {
                 if (RobotMain.existsWhitelist(teamDao.playerName)) {
                     if (RobotMain.getPlayerKHL(teamDao.playerName).equalsIgnoreCase(teamDao.KHL)) {
                         if (teamDao.team >= 0 && teamDao.team <= 3) {
-                            if (!RobotMain.existsPlayerTeam(teamDao.playerName)) {
-                                RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
-                                respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
-                                respondDao.respondData = "Team added";
-                            } else {
-                                RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
-                                respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                                respondDao.respondData = "Team updated";
+                            try {
+                                if (!RobotMain.existsPlayerTeam(teamDao.playerName)) {
+                                    RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
+                                    respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
+                                    respondDao.respondData = "Team added";
+                                } else {
+                                    RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
+                                    respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
+                                    respondDao.respondData = "Team updated";
+                                }
+                            } catch (SQLException e) {
+                                RobotMain.instance.getLogger().info(e.toString());
                             }
                         } else {
                             respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
