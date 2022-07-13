@@ -2,6 +2,8 @@ package cc.venja.minebbs.login.commands;
 
 import cc.venja.minebbs.login.LoginMain;
 import cc.venja.minebbs.login.data.PlayerData;
+import cc.venja.minebbs.login.database.UserInfo;
+import cc.venja.minebbs.login.database.UserInfoDao;
 import cc.venja.minebbs.login.utils.Utils;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
@@ -12,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class RegisterCommand implements CommandExecutor {
@@ -35,36 +38,67 @@ public class RegisterCommand implements CommandExecutor {
             return false;
         }
 
-        var playerName = commandSender.getName().toLowerCase();
-        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+        try {
+            var playerName = commandSender.getName();
+            UserInfoDao userInfoDao = new UserInfoDao();
+            UserInfo user = userInfoDao.queryByUsername(playerName);
 
-        if (file.exists()) {
-            commandSender.sendMessage("§c(!) 该账户已完成注册");
-            return false;
-        } else {
-            if (!args[0].equals(args[1])) {
-                commandSender.sendMessage("§c(!) 两次密码不同，请重试");
+            if (user != null) {
+                commandSender.sendMessage("§c(!) 该账户已完成注册");
                 return false;
-            }
+            } else {
+                if (!args[0].equals(args[1])) {
+                    commandSender.sendMessage("§c(!) 两次密码不同，请重试");
+                    return false;
+                }
 
-            var yaml = YamlConfiguration.loadConfiguration(file);
+                user = new UserInfo();
+                user.setUsername(playerName);
+                user.setPassword(Utils.md5DigestAsHex(args[0].getBytes()));
+                user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
 
-            var playerData = new PlayerData();
-            playerData.password = Utils.md5DigestAsHex(args[0].getBytes());
-            playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
-
-            try {
-                yaml = playerData.reflectToConfigSection(yaml);
-                yaml.save(file);
+                userInfoDao.addUser(user);
 
                 commandSender.sendMessage("§a(*) 注册成功，欢迎加入~");
 
                 LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
-                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
-            } catch (Exception e) {
-                LoginMain.instance.getLogger().warning(e.toString());
+                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(user.getLastGameMode())));
             }
+        } catch (SQLException e) {
+            LoginMain.instance.getLogger().warning(e.toString());
         }
+
+
+//        var playerName = commandSender.getName().toLowerCase();
+//        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+//
+//        if (file.exists()) {
+//            commandSender.sendMessage("§c(!) 该账户已完成注册");
+//            return false;
+//        } else {
+//            if (!args[0].equals(args[1])) {
+//                commandSender.sendMessage("§c(!) 两次密码不同，请重试");
+//                return false;
+//            }
+//
+//            var yaml = YamlConfiguration.loadConfiguration(file);
+//
+//            var playerData = new PlayerData();
+//            playerData.password = Utils.md5DigestAsHex(args[0].getBytes());
+//            playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
+//
+//            try {
+//                yaml = playerData.reflectToConfigSection(yaml);
+//                yaml.save(file);
+//
+//                commandSender.sendMessage("§a(*) 注册成功，欢迎加入~");
+//
+//                LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
+//                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
+//            } catch (Exception e) {
+//                LoginMain.instance.getLogger().warning(e.toString());
+//            }
+//        }
 
         return false;
     }

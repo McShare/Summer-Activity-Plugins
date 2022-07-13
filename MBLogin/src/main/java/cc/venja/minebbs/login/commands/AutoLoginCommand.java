@@ -2,6 +2,8 @@ package cc.venja.minebbs.login.commands;
 
 import cc.venja.minebbs.login.LoginMain;
 import cc.venja.minebbs.login.data.PlayerData;
+import cc.venja.minebbs.login.database.UserInfo;
+import cc.venja.minebbs.login.database.UserInfoDao;
 import cc.venja.minebbs.login.utils.Utils;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
@@ -31,25 +33,43 @@ public class AutoLoginCommand implements CommandExecutor {
             return false;
         }
 
-        var playerName = commandSender.getName().toLowerCase();
-        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-        var yaml = YamlConfiguration.loadConfiguration(file);
-
         try {
-            var playerData = new PlayerData().applyConfigSection(yaml);
-            playerData.enableAutoLogin = !playerData.enableAutoLogin;
+            var playerName = commandSender.getName();
+            UserInfoDao userInfoDao = new UserInfoDao();
+            UserInfo user = userInfoDao.queryByUsername(playerName);
 
-            if (playerData.enableAutoLogin) {
+            user.setEnableAutoLogin(!user.isEnableAutoLogin());
+
+            if (user.isEnableAutoLogin()) {
                 commandSender.sendMessage("§a(*) 启用同IP自动登录，该操作有一定风险，请确保你的IP不会跟别人重复~");
             } else {
                 commandSender.sendMessage("§a(*) 关闭同IP自动登录~");
             }
 
-            yaml = playerData.reflectToConfigSection(yaml);
-            yaml.save(file);
+            userInfoDao.updateUser(user);
         } catch (Exception e) {
             LoginMain.instance.getLogger().warning(e.toString());
         }
+
+//        var playerName = commandSender.getName().toLowerCase();
+//        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+//        var yaml = YamlConfiguration.loadConfiguration(file);
+//
+//        try {
+//            var playerData = new PlayerData().applyConfigSection(yaml);
+//            playerData.enableAutoLogin = !playerData.enableAutoLogin;
+//
+//            if (playerData.enableAutoLogin) {
+//                commandSender.sendMessage("§a(*) 启用同IP自动登录，该操作有一定风险，请确保你的IP不会跟别人重复~");
+//            } else {
+//                commandSender.sendMessage("§a(*) 关闭同IP自动登录~");
+//            }
+//
+//            yaml = playerData.reflectToConfigSection(yaml);
+//            yaml.save(file);
+//        } catch (Exception e) {
+//            LoginMain.instance.getLogger().warning(e.toString());
+//        }
 
         return false;
     }

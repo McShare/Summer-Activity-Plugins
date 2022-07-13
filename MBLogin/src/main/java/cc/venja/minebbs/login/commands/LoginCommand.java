@@ -2,6 +2,8 @@ package cc.venja.minebbs.login.commands;
 
 import cc.venja.minebbs.login.LoginMain;
 import cc.venja.minebbs.login.data.PlayerData;
+import cc.venja.minebbs.login.database.UserInfo;
+import cc.venja.minebbs.login.database.UserInfoDao;
 import cc.venja.minebbs.login.utils.Utils;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
@@ -35,28 +37,49 @@ public class LoginCommand implements CommandExecutor {
             return false;
         }
 
-        var playerName = commandSender.getName().toLowerCase();
-        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-        var yaml = YamlConfiguration.loadConfiguration(file);
-
         try {
-            var playerData = new PlayerData().applyConfigSection(yaml);
-            playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
+            var playerName = commandSender.getName();
+            UserInfoDao userInfoDao = new UserInfoDao();
+            UserInfo user = userInfoDao.queryByUsername(playerName);
 
-            if (playerData.password.equals(Utils.md5DigestAsHex(args[0].getBytes()))) {
-                yaml = playerData.reflectToConfigSection(yaml);
-                yaml.save(file);
+            user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
+
+            if (user.getPassword().equals(Utils.md5DigestAsHex(args[0].getBytes()))) {
+                userInfoDao.updateUser(user);
 
                 commandSender.sendMessage("§a(*) 登录成功，欢迎回来~");
 
                 LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
-                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
+                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(user.getLastGameMode())));
             } else {
                 commandSender.sendMessage("§c(!) 密码错误, 请重试");
             }
         } catch (Exception e) {
             LoginMain.instance.getLogger().warning(e.toString());
         }
+
+//        var playerName = commandSender.getName().toLowerCase();
+//        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
+//        var yaml = YamlConfiguration.loadConfiguration(file);
+//
+//        try {
+//            var playerData = new PlayerData().applyConfigSection(yaml);
+//            playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
+//
+//            if (playerData.password.equals(Utils.md5DigestAsHex(args[0].getBytes()))) {
+//                yaml = playerData.reflectToConfigSection(yaml);
+//                yaml.save(file);
+//
+//                commandSender.sendMessage("§a(*) 登录成功，欢迎回来~");
+//
+//                LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
+//                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
+//            } else {
+//                commandSender.sendMessage("§c(!) 密码错误, 请重试");
+//            }
+//        } catch (Exception e) {
+//            LoginMain.instance.getLogger().warning(e.toString());
+//        }
 
         return false;
     }
