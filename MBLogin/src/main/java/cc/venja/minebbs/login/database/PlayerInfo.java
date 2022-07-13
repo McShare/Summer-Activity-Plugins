@@ -1,49 +1,45 @@
 package cc.venja.minebbs.login.database;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class PlayerInfo {
+
+    @Getter
+    @Setter
     private String playerName;
+    @Getter
+    @Setter
     private String password;
+    @Getter
+    @Setter
+    private int team;
+    @Getter
+    @Setter
     private String lastLoginIp;
+    @Getter
+    @Setter
     private int lastGameMode;
+    @Getter
+    @Setter
     private boolean enableAutoLogin;
 
-    public String getUsername() {
-        return playerName;
+    public PlayerInfo() {
     }
 
-    public void setPlayerName(String playerName) {
+    public PlayerInfo(
+            String playerName,
+            String password,
+            int team,
+            String lastLoginIp,
+            int lastGameMode,
+            boolean enableAutoLogin
+    ) {
         this.playerName = playerName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getLastLoginIp() {
-        return lastLoginIp;
-    }
-
-    public void setLastLoginIp(String lastLoginIp) {
+        this.team = team;
         this.lastLoginIp = lastLoginIp;
-    }
-
-    public int getLastGameMode() {
-        return lastGameMode;
-    }
-
-    public void setLastGameMode(int lastGameMode) {
         this.lastGameMode = lastGameMode;
-    }
-
-    public boolean isEnableAutoLogin() {
-        return enableAutoLogin;
-    }
-
-    public void setEnableAutoLogin(boolean enableAutoLogin) {
         this.enableAutoLogin = enableAutoLogin;
     }
 }

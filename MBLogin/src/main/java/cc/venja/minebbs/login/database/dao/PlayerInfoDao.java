@@ -2,6 +2,7 @@ package cc.venja.minebbs.login.database.dao;
 
 import cc.venja.minebbs.login.LoginMain;
 import cc.venja.minebbs.login.database.PlayerInfo;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,31 +10,26 @@ import java.util.List;
 
 public class PlayerInfoDao {
 
-    public PlayerInfo player = null;
-
-    public PlayerInfoDao() {}
+    public PlayerInfoDao() {
+    }
 
     public void addPlayer(PlayerInfo playerInfo) throws SQLException {
-        String sql = "insert into player_info(player_name, password, last_login_ip, last_game_mode, enable_auto_login)"+
+        String sql = "insert into player_info(player_name, password, last_login_ip, last_game_mode, enable_auto_login)" +
                 "values(?,?,?,?,?)";
 
-        PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
-
-        statement.setString(1, playerInfo.getUsername());
-        statement.setString(2, playerInfo.getPassword());
-        statement.setString(3, playerInfo.getLastLoginIp());
-        statement.setInt(4, playerInfo.getLastGameMode());
-        statement.setBoolean(5, playerInfo.isEnableAutoLogin());
-
-        statement.execute();
+        applyPlayer(playerInfo, sql);
     }
 
     public void updatePlayer(PlayerInfo playerInfo) throws SQLException {
         String sql = "update player_info set player_name=?, password=?, last_login_ip=?, last_game_mode=?, enable_auto_login=?";
 
+        applyPlayer(playerInfo, sql);
+    }
+
+    private void applyPlayer(PlayerInfo playerInfo, String sql) throws SQLException {
         PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
 
-        statement.setString(1, playerInfo.getUsername());
+        statement.setString(1, playerInfo.getPlayerName());
         statement.setString(2, playerInfo.getPassword());
         statement.setString(3, playerInfo.getLastLoginIp());
         statement.setInt(4, playerInfo.getLastGameMode());
@@ -46,19 +42,32 @@ public class PlayerInfoDao {
         Statement statement = LoginMain.instance.databaseConnection.createStatement();
         ResultSet resultSet = statement.executeQuery("select * from player_info");
 
+        return buildPlayers(resultSet);
+    }
+
+    public List<PlayerInfo> queryPlayersByTeam(int team) throws SQLException {
+        String sql = "select * from player_info where team=?";
+        PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
+        statement.setInt(1, team);
+
+        ResultSet resultSet = statement.executeQuery();
+
+        return buildPlayers(resultSet);
+    }
+
+    @NotNull
+    private List<PlayerInfo> buildPlayers(ResultSet resultSet) throws SQLException {
         List<PlayerInfo> players = new ArrayList<>();
-        PlayerInfo player = null;
         while (resultSet.next()) {
-            player = new PlayerInfo();
-            player.setPlayerName(resultSet.getString("player_name"));
-            player.setPassword(resultSet.getString("password"));
-            player.setLastLoginIp(resultSet.getString("last_login_ip"));
-            player.setLastGameMode(resultSet.getInt("last_game_mode"));
-            player.setEnableAutoLogin(resultSet.getBoolean("enable_auto_login"));
-
-            players.add(player);
+            players.add(new PlayerInfo(
+                    resultSet.getString("player_name"),
+                    resultSet.getString("password"),
+                    resultSet.getInt("team"),
+                    resultSet.getString("last_login_ip"),
+                    resultSet.getInt("last_game_mode"),
+                    resultSet.getBoolean("enable_auto_login")
+            ));
         }
-
         return players;
     }
 
@@ -70,13 +79,15 @@ public class PlayerInfoDao {
         ResultSet resultSet = statement.executeQuery();
         PlayerInfo player = null;
 
-        while (resultSet.next()) {
-            player = new PlayerInfo();
-            player.setPlayerName(resultSet.getString("player_name"));
-            player.setPassword(resultSet.getString("password"));
-            player.setLastLoginIp(resultSet.getString("last_login_ip"));
-            player.setLastGameMode(resultSet.getInt("last_game_mode"));
-            player.setEnableAutoLogin(resultSet.getBoolean("enable_auto_login"));
+        if (resultSet.next()) {
+            player = new PlayerInfo(
+                    resultSet.getString("player_name"),
+                    resultSet.getString("password"),
+                    resultSet.getInt("team"),
+                    resultSet.getString("last_login_ip"),
+                    resultSet.getInt("last_game_mode"),
+                    resultSet.getBoolean("enable_auto_login")
+            );
         }
 
         return player;

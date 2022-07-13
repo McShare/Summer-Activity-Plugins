@@ -3,14 +3,12 @@ package cc.venja.minebbs.login;
 import cc.venja.minebbs.login.commands.AutoLoginCommand;
 import cc.venja.minebbs.login.commands.LoginCommand;
 import cc.venja.minebbs.login.commands.RegisterCommand;
-import cc.venja.minebbs.login.database.PlayerInfo;
 import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -72,18 +70,17 @@ public class LoginMain extends JavaPlugin implements Listener {
                 };
 
                 configuration.set("Database", databaseConfig);
-            } else {
-                ConfigurationSection databaseSection = Objects.requireNonNull(
-                        configuration.getConfigurationSection("Database"));
-                Class.forName("com.mysql.jdbc.Driver");
-                databaseConnection = DriverManager.getConnection(
-                        String.format("jdbc:mysql://%s", databaseSection.get("Host")),
-                        Objects.requireNonNull(databaseSection.get("Username")).toString(),
-                        Objects.requireNonNull(databaseSection.get("Password")).toString()
-                );
             }
-
             configuration.save(configFile);
+
+            var databaseSection = Objects.requireNonNull(
+                    configuration.getConfigurationSection("Database"));
+            Class.forName("com.mysql.jdbc.Driver");
+            databaseConnection = DriverManager.getConnection(
+                    String.format("jdbc:mysql://%s", databaseSection.get("Host")),
+                    Objects.requireNonNull(databaseSection.get("Username")).toString(),
+                    Objects.requireNonNull(databaseSection.get("Password")).toString()
+            );
 
             this.getServer().getPluginManager().registerEvents(this, this);
         } catch (Exception e) {
@@ -121,10 +118,10 @@ public class LoginMain extends JavaPlugin implements Listener {
         event.getPlayer().setGameMode(GameMode.SPECTATOR);
         var playerName = event.getPlayer().getName();
 
-        PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-        PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
+        var playerInfoDao = new PlayerInfoDao();
+        var user = playerInfoDao.getPlayerByName(playerName);
 
-        if (user == null) {
+        if (user == null || user.getPassword().equals("")) {
             onlinePlayers.put(event.getPlayer(), Status.NOT_REGISTER);
             event.getPlayer().sendMessage("§6>>> 请输入/register <密码> <确认密码>, 完成注册");
         } else {
@@ -141,29 +138,6 @@ public class LoginMain extends JavaPlugin implements Listener {
             }
             event.getPlayer().sendMessage("§6>>> 请输入/login <密码>, 进行登录");
         }
-
-//        var playerName = event.getPlayer().getName().toLowerCase();
-//        var file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-//        if (!file.exists()) {
-//            onlinePlayers.put(event.getPlayer(), Status.NOT_REGISTER);
-//            event.getPlayer().sendMessage("§6>>> 请输入/register <密码> <确认密码>, 完成注册");
-//        } else {
-//            onlinePlayers.put(event.getPlayer(), Status.NOT_LOGIN);
-//
-//            var yaml = YamlConfiguration.loadConfiguration(file);
-//            var playerData = new PlayerData().applyConfigSection(yaml);
-//
-//            if (playerData.lastLoginIp.equals(Objects.requireNonNull(event.getPlayer().getAddress()).getAddress().toString())) {
-//                if (playerData.enableAutoLogin) {
-//                    event.getPlayer().sendMessage("§a(*) 与上次登录IP相同，自动登录，欢迎回来~");
-//
-//                    LoginMain.instance.onlinePlayers.put(event.getPlayer(), LoginMain.Status.LOGIN);
-//                    event.getPlayer().setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
-//                    return;
-//                }
-//            }
-//            event.getPlayer().sendMessage("§6>>> 请输入/login <密码>, 进行登录");
-//        }
     }
 
     @EventHandler
@@ -174,18 +148,9 @@ public class LoginMain extends JavaPlugin implements Listener {
             var playerName = event.getPlayer().getName();
 
             var playerDao = new PlayerInfoDao();
-            PlayerInfo player = playerDao.getPlayerByName(playerName);
+            var player = playerDao.getPlayerByName(playerName);
             player.setLastGameMode(event.getPlayer().getGameMode().getValue());
             playerDao.updatePlayer(player);
-
-//            var playerName = event.getPlayer().getName().toLowerCase();
-//            var file = new File(this.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-//
-//            var yaml = YamlConfiguration.loadConfiguration(file);
-//            var playerData = new PlayerData().applyConfigSection(yaml);
-//            playerData.lastGameMode = event.getPlayer().getGameMode().getValue();
-//            yaml = playerData.reflectToConfigSection(yaml);
-//            yaml.save(file);
         }
 
         onlinePlayers.remove(event.getPlayer());

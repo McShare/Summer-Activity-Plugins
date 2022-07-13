@@ -37,10 +37,10 @@ public class RegisterCommand implements CommandExecutor {
 
         try {
             var playerName = commandSender.getName();
-            PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-            PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
+            var playerInfoDao = new PlayerInfoDao();
+            var user = playerInfoDao.getPlayerByName(playerName);
 
-            if (user != null) {
+            if (user != null && !user.getPassword().equals("")) {
                 commandSender.sendMessage("§c(!) 该账户已完成注册");
                 return false;
             } else {
@@ -49,12 +49,18 @@ public class RegisterCommand implements CommandExecutor {
                     return false;
                 }
 
+                var insert = user == null;
+
                 user = new PlayerInfo();
                 user.setPlayerName(playerName);
                 user.setPassword(Utils.md5DigestAsHex(args[0].getBytes()));
                 user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
 
-                playerInfoDao.addPlayer(user);
+                if (insert) {
+                    playerInfoDao.addPlayer(user);
+                } else {
+                    playerInfoDao.updatePlayer(user);
+                }
 
                 commandSender.sendMessage("§a(*) 注册成功，欢迎加入~");
 
@@ -64,38 +70,6 @@ public class RegisterCommand implements CommandExecutor {
         } catch (SQLException e) {
             LoginMain.instance.getLogger().warning(e.toString());
         }
-
-
-//        var playerName = commandSender.getName().toLowerCase();
-//        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-//
-//        if (file.exists()) {
-//            commandSender.sendMessage("§c(!) 该账户已完成注册");
-//            return false;
-//        } else {
-//            if (!args[0].equals(args[1])) {
-//                commandSender.sendMessage("§c(!) 两次密码不同，请重试");
-//                return false;
-//            }
-//
-//            var yaml = YamlConfiguration.loadConfiguration(file);
-//
-//            var playerData = new PlayerData();
-//            playerData.password = Utils.md5DigestAsHex(args[0].getBytes());
-//            playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
-//
-//            try {
-//                yaml = playerData.reflectToConfigSection(yaml);
-//                yaml.save(file);
-//
-//                commandSender.sendMessage("§a(*) 注册成功，欢迎加入~");
-//
-//                LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
-//                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
-//            } catch (Exception e) {
-//                LoginMain.instance.getLogger().warning(e.toString());
-//            }
-//        }
 
         return false;
     }

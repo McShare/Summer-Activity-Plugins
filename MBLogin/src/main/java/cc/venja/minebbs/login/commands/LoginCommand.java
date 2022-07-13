@@ -36,8 +36,8 @@ public class LoginCommand implements CommandExecutor {
 
         try {
             var playerName = commandSender.getName();
-            PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-            PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
+            var playerInfoDao = new PlayerInfoDao();
+            var user = playerInfoDao.getPlayerByName(playerName);
 
             user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
 
@@ -54,29 +54,6 @@ public class LoginCommand implements CommandExecutor {
         } catch (Exception e) {
             LoginMain.instance.getLogger().warning(e.toString());
         }
-
-//        var playerName = commandSender.getName().toLowerCase();
-//        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-//        var yaml = YamlConfiguration.loadConfiguration(file);
-//
-//        try {
-//            var playerData = new PlayerData().applyConfigSection(yaml);
-//            playerData.lastLoginIp = Objects.requireNonNull(player.getAddress()).getAddress().toString();
-//
-//            if (playerData.password.equals(Utils.md5DigestAsHex(args[0].getBytes()))) {
-//                yaml = playerData.reflectToConfigSection(yaml);
-//                yaml.save(file);
-//
-//                commandSender.sendMessage("§a(*) 登录成功，欢迎回来~");
-//
-//                LoginMain.instance.onlinePlayers.put(player, LoginMain.Status.LOGIN);
-//                player.setGameMode(Objects.requireNonNull(GameMode.getByValue(playerData.lastGameMode)));
-//            } else {
-//                commandSender.sendMessage("§c(!) 密码错误, 请重试");
-//            }
-//        } catch (Exception e) {
-//            LoginMain.instance.getLogger().warning(e.toString());
-//        }
 
         return false;
     }

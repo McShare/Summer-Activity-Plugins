@@ -1,7 +1,6 @@
 package cc.venja.minebbs.login.commands;
 
 import cc.venja.minebbs.login.LoginMain;
-import cc.venja.minebbs.login.database.PlayerInfo;
 import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,8 +27,8 @@ public class AutoLoginCommand implements CommandExecutor {
 
         try {
             var playerName = commandSender.getName();
-            PlayerInfoDao playerInfoDao = new PlayerInfoDao();
-            PlayerInfo user = playerInfoDao.getPlayerByName(playerName);
+            var playerInfoDao = new PlayerInfoDao();
+            var user = playerInfoDao.getPlayerByName(playerName);
 
             user.setEnableAutoLogin(!user.isEnableAutoLogin());
 
@@ -43,26 +42,6 @@ public class AutoLoginCommand implements CommandExecutor {
         } catch (Exception e) {
             LoginMain.instance.getLogger().warning(e.toString());
         }
-
-//        var playerName = commandSender.getName().toLowerCase();
-//        var file = new File(LoginMain.instance.getDataFolder().toPath().resolve("data").resolve(playerName + ".yml").toString());
-//        var yaml = YamlConfiguration.loadConfiguration(file);
-//
-//        try {
-//            var playerData = new PlayerData().applyConfigSection(yaml);
-//            playerData.enableAutoLogin = !playerData.enableAutoLogin;
-//
-//            if (playerData.enableAutoLogin) {
-//                commandSender.sendMessage("§a(*) 启用同IP自动登录，该操作有一定风险，请确保你的IP不会跟别人重复~");
-//            } else {
-//                commandSender.sendMessage("§a(*) 关闭同IP自动登录~");
-//            }
-//
-//            yaml = playerData.reflectToConfigSection(yaml);
-//            yaml.save(file);
-//        } catch (Exception e) {
-//            LoginMain.instance.getLogger().warning(e.toString());
-//        }
 
         return false;
     }
