@@ -1,4 +1,4 @@
-package cc.venja.minebbs.battle.enums;
+package cc.venja.minebbs.login.enums;
 
 import java.util.HashMap;
 import java.util.Map;

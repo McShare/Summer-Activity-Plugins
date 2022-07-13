@@ -1,6 +1,6 @@
 package cc.venja.minebbs.battle.data;
 
-import cc.venja.minebbs.battle.enums.Role;
+import cc.venja.minebbs.login.enums.Role;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.lang.reflect.Field;

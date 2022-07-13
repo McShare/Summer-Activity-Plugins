@@ -1,6 +1,6 @@
 package cc.venja.minebbs.battle;
 
-import cc.venja.minebbs.battle.enums.Team;
+import cc.venja.minebbs.login.enums.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -16,6 +16,7 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageByEntityEvent event) {
+    public void onEntityDamage(EntityDamageByEntityEvent event) throws SQLException {
         Entity damager = event.getDamager();
         Entity damagee = event.getEntity();
         if (damager.getType().equals(EntityType.PLAYER) && damagee.getType().equals(EntityType.PLAYER)) {
@@ -75,12 +76,12 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerRespawn(PlayerPostRespawnEvent event) {
+    public void onPlayerRespawn(PlayerPostRespawnEvent event) throws SQLException {
         Player player = event.getPlayer();
         Location location = event.getRespawnedLocation();
 
         var teamValue = RobotMain.getPlayerTeam(event.getPlayer().getName());
-        String team = "Team" + Team.getByValue(teamValue);
+        String team = "Team" + teamValue;
 
         List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
                 getDoubleList("RespawnPosition");
