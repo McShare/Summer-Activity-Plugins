@@ -5,4 +5,8 @@ author: Kazi-VE
 api-version: 1.13
 
 softdepend:
-  - MBBattle
+  - MBLogin
+
+commands:
+  doupdate:
+    description: Robot Data update

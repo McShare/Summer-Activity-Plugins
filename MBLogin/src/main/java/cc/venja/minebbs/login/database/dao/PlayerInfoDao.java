@@ -14,14 +14,14 @@ public class PlayerInfoDao {
     }
 
     public void addPlayer(PlayerInfo playerInfo) throws SQLException {
-        String sql = "insert into player_info(player_name, password, last_login_ip, last_game_mode, enable_auto_login)" +
-                "values(?,?,?,?,?)";
+        String sql = "insert into player_info(player_name, password, last_login_ip, last_game_mode, enable_auto_login, team, account_KHL)" +
+                "values(?,?,?,?,?,?,?)";
 
         applyPlayer(playerInfo, sql);
     }
 
     public void updatePlayer(PlayerInfo playerInfo) throws SQLException {
-        String sql = "update player_info set player_name=?, password=?, last_login_ip=?, last_game_mode=?, enable_auto_login=?";
+        String sql = "update player_info set player_name=?, password=?, last_login_ip=?, last_game_mode=?, enable_auto_login=?, team=?, account_KHL=?";
 
         applyPlayer(playerInfo, sql);
     }
@@ -34,6 +34,8 @@ public class PlayerInfoDao {
         statement.setString(3, playerInfo.getLastLoginIp());
         statement.setInt(4, playerInfo.getLastGameMode());
         statement.setBoolean(5, playerInfo.isEnableAutoLogin());
+        statement.setInt(6, playerInfo.getTeam());
+        statement.setString(7, playerInfo.getKhl());
 
         statement.execute();
     }
@@ -63,6 +65,7 @@ public class PlayerInfoDao {
                     resultSet.getString("player_name"),
                     resultSet.getString("password"),
                     resultSet.getInt("team"),
+                    resultSet.getString("account_KHL"),
                     resultSet.getString("last_login_ip"),
                     resultSet.getInt("last_game_mode"),
                     resultSet.getBoolean("enable_auto_login")
@@ -72,6 +75,7 @@ public class PlayerInfoDao {
     }
 
     public PlayerInfo getPlayerByName(String playerName) throws SQLException {
+        playerName = playerName.toLowerCase();
         String sql = "select * from player_info where player_name=?";
         PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
         statement.setString(1, playerName);
@@ -84,6 +88,7 @@ public class PlayerInfoDao {
                     resultSet.getString("player_name"),
                     resultSet.getString("password"),
                     resultSet.getInt("team"),
+                    resultSet.getString("account_KHL"),
                     resultSet.getString("last_login_ip"),
                     resultSet.getInt("last_game_mode"),
                     resultSet.getBoolean("enable_auto_login")
@@ -94,6 +99,7 @@ public class PlayerInfoDao {
     }
 
     public void delPlayerByName(String playerName) throws SQLException {
+        playerName = playerName.toLowerCase();
         String sql = "del from player_info where player_name=?";
 
         PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);

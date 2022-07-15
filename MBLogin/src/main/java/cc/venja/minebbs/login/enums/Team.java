@@ -47,8 +47,8 @@ public enum Team {
     }
 
     static {
-        for (Team role : values()) {
-            BY_ID.put(role.getValue(), role);
+        for (Team team : values()) {
+            BY_ID.put(team.getValue(), team);
         }
     }
 }

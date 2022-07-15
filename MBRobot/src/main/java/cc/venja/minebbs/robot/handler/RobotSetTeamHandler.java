@@ -28,11 +28,11 @@ public class RobotSetTeamHandler implements HttpHandler {
                         if (teamDao.team >= 0 && teamDao.team <= 3) {
                             try {
                                 if (!RobotMain.existsPlayerTeam(teamDao.playerName)) {
-                                    RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
+                                    RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team, teamDao.KHL);
                                     respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
                                     respondDao.respondData = "Team added";
                                 } else {
-                                    RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team);
+                                    RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team, teamDao.KHL);
                                     respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                                     respondDao.respondData = "Team updated";
                                 }

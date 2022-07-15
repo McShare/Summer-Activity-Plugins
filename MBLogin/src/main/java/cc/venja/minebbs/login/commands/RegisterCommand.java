@@ -49,16 +49,16 @@ public class RegisterCommand implements CommandExecutor {
                     return false;
                 }
 
-                var insert = user == null;
-
-                user = new PlayerInfo();
-                user.setPlayerName(playerName);
-                user.setPassword(Utils.md5DigestAsHex(args[0].getBytes()));
-                user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
-
-                if (insert) {
+                if (user == null) {
+                    user = new PlayerInfo();
+                    user.setPlayerName(playerName);
+                    user.setPassword(Utils.md5DigestAsHex(args[0].getBytes()));
+                    user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
                     playerInfoDao.addPlayer(user);
                 } else {
+                    user.setPlayerName(playerName);
+                    user.setPassword(Utils.md5DigestAsHex(args[0].getBytes()));
+                    user.setLastLoginIp(Objects.requireNonNull(player.getAddress()).getAddress().toString());
                     playerInfoDao.updatePlayer(user);
                 }
 

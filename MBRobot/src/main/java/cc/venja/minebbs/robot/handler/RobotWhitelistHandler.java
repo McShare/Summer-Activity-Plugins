@@ -33,11 +33,13 @@ public class RobotWhitelistHandler implements HttpHandler {
                     RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
                     respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
                     try {
-                        RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue());
+                        Bukkit.getLogger().info(String.valueOf(RobotMain.getLowestMemberTeam()));
+                        RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue(), playerDao.KHL);
                         respondDao.respondData = String.valueOf(Objects.requireNonNull(RobotMain.getPlayerTeam(playerDao.playerName)).getValue());
                     } catch (SQLException e) {
                         RobotMain.instance.getLogger().info(e.toString());
                     }
+                    Bukkit.getLogger().info(respondDao.respondData);
                 }
             } else {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();

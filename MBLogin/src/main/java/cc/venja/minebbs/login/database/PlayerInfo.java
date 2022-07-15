@@ -5,8 +5,6 @@ import lombok.Setter;
 
 public class PlayerInfo {
 
-    @Getter
-    @Setter
     private String playerName;
     @Getter
     @Setter
@@ -14,6 +12,9 @@ public class PlayerInfo {
     @Getter
     @Setter
     private int team;
+    @Getter
+    @Setter
+    private String khl;
     @Getter
     @Setter
     private String lastLoginIp;
@@ -31,6 +32,7 @@ public class PlayerInfo {
             String playerName,
             String password,
             int team,
+            String khl,
             String lastLoginIp,
             int lastGameMode,
             boolean enableAutoLogin
@@ -38,8 +40,17 @@ public class PlayerInfo {
         this.playerName = playerName;
         this.password = password;
         this.team = team;
+        this.khl = khl;
         this.lastLoginIp = lastLoginIp;
         this.lastGameMode = lastGameMode;
         this.enableAutoLogin = enableAutoLogin;
+    }
+
+    public String getPlayerName() {
+        return playerName.toLowerCase();
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName.toLowerCase();
     }
 }

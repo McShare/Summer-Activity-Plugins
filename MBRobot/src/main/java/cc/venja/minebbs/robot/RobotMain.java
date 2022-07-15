@@ -10,6 +10,8 @@ import cc.venja.minebbs.robot.handler.RobotWhitelistHandler;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
 import net.kyori.adventure.text.Component;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -86,12 +89,6 @@ public class RobotMain extends JavaPlugin implements Listener {
         }
 
         getServer().getPluginManager().registerEvents(this, this);
-        try {
-            updateLocalDataToDatabase();
-            reloadTeamListMap();
-        } catch (SQLException e) {
-            getLogger().info(e.toString());
-        }
     }
 
     @Override
@@ -111,6 +108,41 @@ public class RobotMain extends JavaPlugin implements Listener {
         if (!existsWhitelist(Objects.requireNonNull(playerName))) {
             event.kickMessage(Component.text("§c你不在本服务器白名单内"));
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST);
+        }
+    }
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (command.getName().equals("doupdate")) {
+            try {
+                updateLocalDataToDatabase();
+                reloadTeamListMap();
+            } catch (SQLException e) {
+                getLogger().info(e.toString());
+            }
+        }
+        return false;
+    }
+
+    private static void updateLocalDataToDatabase() throws SQLException {
+        for (String player : instance.team.getKeys(false)) {
+            updatePlayer(player, instance.team.getInt(player));
+        }
+        for (String player : instance.whitelist.getKeys(false)) {
+            instance.getLogger().info(instance.whitelist.getString(player));
+            int team = getPlayerTeam(player) == null ? -1 : Objects.requireNonNull(getPlayerTeam(player)).getValue();
+            updatePlayer(player, team, instance.whitelist.getString(player));
+        }
+    }
+
+    public static void reloadTeamListMap() throws SQLException {
+        PlayerInfoDao dao = new PlayerInfoDao();
+        for (Team team : Team.values()) {
+            List<String> players = new ArrayList<>();
+            for (PlayerInfo playerInfo : dao.queryPlayersByTeam(team.getValue())) {
+                players.add(playerInfo.getPlayerName());
+            }
+            teamListMap.put(team, players);
         }
     }
 
@@ -140,25 +172,8 @@ public class RobotMain extends JavaPlugin implements Listener {
      */
     public static Map<Team, List<String>> teamListMap = new ConcurrentHashMap<>();
 
-    private static void updateLocalDataToDatabase() throws SQLException {
-        for (String player : instance.team.getKeys(false)) {
-            updatePlayer(player, instance.team.getInt(player));
-        }
-    }
-
-    public static void reloadTeamListMap() throws SQLException {
-        PlayerInfoDao dao = new PlayerInfoDao();
-        for (Team team : Team.values()) {
-            List<String> players = new ArrayList<>();
-            for (PlayerInfo playerInfo : dao.queryPlayersByTeam(team.getValue())) {
-                players.add(playerInfo.getPlayerName());
-            }
-            teamListMap.put(team, players);
-        }
-    }
-
-    public static void addPlayerTeam(String player, int team) throws SQLException {
-        updatePlayer(player, team);
+    public static void addPlayerTeam(String player, int team, String khl) throws SQLException {
+        updatePlayer(player, team, khl);
 
         List<String> players = teamListMap.get(Team.getByValue(team));
         players.add(player);
@@ -170,17 +185,22 @@ public class RobotMain extends JavaPlugin implements Listener {
         updatePlayer(player, -1);
 
         List<String> players = teamListMap.get(team);
-        players.add(player);
+        players.remove(player);
         teamListMap.put(team, players);
     }
 
     private static void updatePlayer(String player, int team) throws SQLException {
+        updatePlayer(player, team, "");
+    }
+
+    private static void updatePlayer(String player, int team, String khl) throws SQLException {
         PlayerInfoDao dao = new PlayerInfoDao();
         PlayerInfo playerInfo = dao.getPlayerByName(player);
         if (playerInfo == null) {
-            dao.addPlayer(new PlayerInfo(player, "", team, "", 0, true));
+            dao.addPlayer(new PlayerInfo(player, "", team, khl, "", 0, true));
         } else {
             playerInfo.setTeam(instance.team.getInt(player));
+            playerInfo.setKhl(khl);
             dao.updatePlayer(playerInfo);
         }
     }
@@ -201,6 +221,9 @@ public class RobotMain extends JavaPlugin implements Listener {
         if (playerInfo == null) {
             return null;
         }
+        if (playerInfo.getTeam() == -1) {
+            return null;
+        }
         return Team.getByValue(playerInfo.getTeam());
     }
 
@@ -210,8 +233,10 @@ public class RobotMain extends JavaPlugin implements Listener {
         for (Map.Entry<Team, List<String>> entry : teamListMap.entrySet()) {
             Team key = entry.getKey();
             if (key.getValue() <= 3) {
+                instance.getLogger().info(key + " => " + entry.getValue().size());
                 if (entry.getValue().size() < tempNum) {
                     team = key;
+                    tempNum = entry.getValue().size();
                 }
             }
         }
