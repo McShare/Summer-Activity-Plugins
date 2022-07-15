@@ -99,7 +99,7 @@ public class RobotMain extends JavaPlugin implements Listener {
     @EventHandler(
             priority = EventPriority.LOWEST
     )
-    public void onPreJoin(AsyncPlayerPreLoginEvent event) {
+    public void onPreJoin(AsyncPlayerPreLoginEvent event) throws SQLException {
         var playerName = event.getPlayerProfile().getName();
         var floodgatePlayer = FloodgateApi.getInstance().getPlayer(event.getPlayerProfile().getId());
         if (floodgatePlayer != null) {
@@ -108,6 +108,9 @@ public class RobotMain extends JavaPlugin implements Listener {
         if (!existsWhitelist(Objects.requireNonNull(playerName))) {
             event.kickMessage(Component.text("§c你不在本服务器白名单内"));
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST);
+        }
+        if (getPlayerTeam(Objects.requireNonNull(playerName)) == null) {
+            addPlayerTeam(playerName, getLowestMemberTeam().getValue(), getPlayerKHL(playerName));
         }
     }
 
