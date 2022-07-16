@@ -26,21 +26,16 @@ public class RobotWhitelistHandler implements HttpHandler {
             var respondDao = new RespondDao();
             Bukkit.getLogger().info(String.valueOf(playerDao.isValid()));
             if (playerDao.isValid()) {
-                if (RobotMain.existsWhitelist(playerDao.playerName)) {
-                    respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
-                    respondDao.respondData = "Player already added to whitelist";
-                } else {
-                    RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
-                    respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
-                    try {
-                        Bukkit.getLogger().info(String.valueOf(RobotMain.getLowestMemberTeam()));
-                        RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue(), playerDao.KHL);
-                        respondDao.respondData = String.valueOf(Objects.requireNonNull(RobotMain.getPlayerTeam(playerDao.playerName)).getValue());
-                    } catch (SQLException e) {
-                        RobotMain.instance.getLogger().info(e.toString());
-                    }
-                    Bukkit.getLogger().info(respondDao.respondData);
+                RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
+                respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
+                try {
+                    Bukkit.getLogger().info(String.valueOf(RobotMain.getLowestMemberTeam()));
+                    RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue(), playerDao.KHL);
+                    respondDao.respondData = String.valueOf(Objects.requireNonNull(RobotMain.getPlayerTeam(playerDao.playerName)).getValue());
+                } catch (SQLException e) {
+                    RobotMain.instance.getLogger().info(e.toString());
                 }
+                Bukkit.getLogger().info(respondDao.respondData);
             } else {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "POST Body invalid";
