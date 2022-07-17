@@ -89,6 +89,11 @@ public class RobotMain extends JavaPlugin implements Listener {
         }
 
         getServer().getPluginManager().registerEvents(this, this);
+        try {
+            reloadTeamListMap();
+        } catch (Exception e) {
+            getLogger().info(e.toString());
+        }
     }
 
     @Override
@@ -129,12 +134,8 @@ public class RobotMain extends JavaPlugin implements Listener {
 
     private static void updateLocalDataToDatabase() throws SQLException {
         for (String player : instance.team.getKeys(false)) {
-            updatePlayer(player, instance.team.getInt(player));
-        }
-        for (String player : instance.whitelist.getKeys(false)) {
-            instance.getLogger().info(instance.whitelist.getString(player));
-            int team = getPlayerTeam(player) == null ? -1 : Objects.requireNonNull(getPlayerTeam(player)).getValue();
-            updatePlayer(player, team, instance.whitelist.getString(player));
+            updatePlayer(player, instance.team.getInt(player), instance.whitelist.getString(player));
+            instance.getLogger().info(player + " => " + instance.team.getInt(player));
         }
     }
 
@@ -200,8 +201,10 @@ public class RobotMain extends JavaPlugin implements Listener {
         PlayerInfoDao dao = new PlayerInfoDao();
         PlayerInfo playerInfo = dao.getPlayerByName(player);
         if (playerInfo == null) {
+            instance.getLogger().info("执行创建");
             dao.addPlayer(new PlayerInfo(player, "", team, khl, "", 0, true));
         } else {
+            instance.getLogger().info("执行更新");
             playerInfo.setTeam(instance.team.getInt(player));
             playerInfo.setKhl(khl);
             dao.updatePlayer(playerInfo);
@@ -236,7 +239,6 @@ public class RobotMain extends JavaPlugin implements Listener {
         for (Map.Entry<Team, List<String>> entry : teamListMap.entrySet()) {
             Team key = entry.getKey();
             if (key.getValue() <= 3) {
-                instance.getLogger().info(key + " => " + entry.getValue().size());
                 if (entry.getValue().size() < tempNum) {
                     team = key;
                     tempNum = entry.getValue().size();
