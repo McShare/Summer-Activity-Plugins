@@ -17,16 +17,6 @@ public class PlayerInfoDao {
         String sql = "insert into player_info(player_name, password, last_login_ip, last_game_mode, enable_auto_login, team, account_KHL)" +
                 "values(?,?,?,?,?,?,?)";
 
-        applyPlayer(playerInfo, sql);
-    }
-
-    public void updatePlayer(PlayerInfo playerInfo) throws SQLException {
-        String sql = "update player_info set player_name=?, password=?, last_login_ip=?, last_game_mode=?, enable_auto_login=?, team=?, account_KHL=?";
-
-        applyPlayer(playerInfo, sql);
-    }
-
-    private void applyPlayer(PlayerInfo playerInfo, String sql) throws SQLException {
         PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
 
         statement.setString(1, playerInfo.getPlayerName());
@@ -37,6 +27,24 @@ public class PlayerInfoDao {
         statement.setInt(6, playerInfo.getTeam());
         statement.setString(7, playerInfo.getKhl());
 
+        LoginMain.instance.getLogger().info(statement.toString());
+        statement.execute();
+    }
+
+    public void updatePlayer(PlayerInfo playerInfo) throws SQLException {
+        String sql = "update player_info set password=?, last_login_ip=?, last_game_mode=?, enable_auto_login=?, team=?, account_KHL=? where player_name=?";
+
+        PreparedStatement statement = LoginMain.instance.databaseConnection.prepareStatement(sql);
+
+        statement.setString(1, playerInfo.getPassword());
+        statement.setString(2, playerInfo.getLastLoginIp());
+        statement.setInt(3, playerInfo.getLastGameMode());
+        statement.setBoolean(4, playerInfo.isEnableAutoLogin());
+        statement.setInt(5, playerInfo.getTeam());
+        statement.setString(6, playerInfo.getKhl());
+        statement.setString(7, playerInfo.getPlayerName());
+
+        LoginMain.instance.getLogger().info(statement.toString());
         statement.execute();
     }
 

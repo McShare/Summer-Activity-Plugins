@@ -77,7 +77,7 @@ public class LoginMain extends JavaPlugin implements Listener {
                     configuration.getConfigurationSection("Database"));
             Class.forName("com.mysql.jdbc.Driver");
             databaseConnection = DriverManager.getConnection(
-                    String.format("jdbc:mysql://%s?autoReconnect=true", databaseSection.get("Host")),
+                    String.format("jdbc:mysql://%s?autoReconnect=true&tcpKeepAlive=true", databaseSection.get("Host")),
                     Objects.requireNonNull(databaseSection.get("Username")).toString(),
                     Objects.requireNonNull(databaseSection.get("Password")).toString()
             );
@@ -88,6 +88,14 @@ public class LoginMain extends JavaPlugin implements Listener {
         }
     }
 
+    @Override
+    public void onDisable() {
+        try {
+            databaseConnection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @EventHandler (
             priority = EventPriority.HIGHEST

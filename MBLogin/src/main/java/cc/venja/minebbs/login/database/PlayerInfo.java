@@ -53,4 +53,17 @@ public class PlayerInfo {
     public void setPlayerName(String playerName) {
         this.playerName = playerName.toLowerCase();
     }
+
+    @Override
+    public String toString() {
+        return "PlayerInfo{" +
+                "playerName='" + playerName + '\'' +
+                ", password='" + password + '\'' +
+                ", team=" + team +
+                ", khl='" + khl + '\'' +
+                ", lastLoginIp='" + lastLoginIp + '\'' +
+                ", lastGameMode=" + lastGameMode +
+                ", enableAutoLogin=" + enableAutoLogin +
+                '}';
+    }
 }
