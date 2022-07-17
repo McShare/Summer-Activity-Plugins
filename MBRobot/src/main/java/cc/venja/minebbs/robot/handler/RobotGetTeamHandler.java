@@ -4,6 +4,7 @@ import cc.venja.minebbs.robot.RobotMain;
 import cc.venja.minebbs.robot.dao.RespondDao;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -38,6 +39,7 @@ public class RobotGetTeamHandler implements HttpHandler {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "Invalid Header";
             }
+            Bukkit.getLogger().info(respondDao.respondData);
 
             responseHeaders.set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(respondDao.respondCode, 0);

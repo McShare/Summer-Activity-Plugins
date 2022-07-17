@@ -5,6 +5,7 @@ import cc.venja.minebbs.robot.dao.PlayerDao;
 import cc.venja.minebbs.robot.dao.RespondDao;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +40,8 @@ public class RobotDelWhitelistHandler implements HttpHandler {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "POST Body invalid";
             }
+            Bukkit.getLogger().info(respondDao.respondData);
+
             responseHeaders.set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(respondDao.respondCode, 0);
 
