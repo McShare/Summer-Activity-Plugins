@@ -96,11 +96,6 @@ public class RobotMain extends JavaPlugin implements Listener {
         }
     }
 
-    @Override
-    public void onDisable() {
-        server.stop(1);
-    }
-
     @EventHandler(
             priority = EventPriority.LOWEST
     )
