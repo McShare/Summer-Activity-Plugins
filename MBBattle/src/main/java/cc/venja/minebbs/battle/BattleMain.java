@@ -5,6 +5,7 @@ import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -15,11 +16,13 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.N;
 
 import java.io.File;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -33,6 +36,11 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public File configFile;
     public YamlConfiguration configuration;
+
+    public File dataFile;
+    public YamlConfiguration data;
+
+    public Map<String, List<Player>> occupies = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -58,8 +66,10 @@ public class BattleMain extends JavaPlugin implements Listener {
                     {
                         add(new HashMap<String, Object>() {
                             {
+                                put("Id", "0");
                                 put("Position", new int[] {0, 0, 0});
                                 put("OwnerTeam", "TeamRED");
+                                put("Range", new int[] {7, 7, 7});
                             }
                         });
                     }
@@ -67,6 +77,9 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
 
             configuration.save(configFile);
+
+            dataFile = new File(this.getDataFolder().toPath().resolve("data.yml").toString()).getAbsoluteFile();
+            data = YamlConfiguration.loadConfiguration(dataFile);
 
             this.getServer().getPluginManager().registerEvents(this, this);
         } catch (Exception e) {
@@ -155,14 +168,33 @@ public class BattleMain extends JavaPlugin implements Listener {
                     }
                 }
 
+                if (data.get(map.get("Id").toString()) == null) {
+                    data.set(map.get("Id").toString(), new HashMap<String, Object>() {
+                        {
+                            put("OccupyPercentage", 0);
+                            put("OccupyTeam", "");
+                        }
+                    });
+                    try {
+                        data.save(dataFile);
+                    } catch (Exception e) {
+                        this.getLogger().warning(e.toString());
+                    }
+
+                }
+
                 this.getLogger().info(String.format("位于(%d, %d, %d)的%s据点已成功生成", x, y, z, ownerTeam));
             }
         });
+
+        OccupyDetect();
     }
 
     @EventHandler
     public void onBlockDamage(BlockDamageEvent event) {
-        event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
+        if (!event.getPlayer().isOp()) {
+            event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
+        }
     }
 
     @EventHandler
@@ -216,7 +248,129 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
+        if (!event.getPlayer().isOp()) {
+            event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
+        }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
+
+        for (Map<?, ?> stronghold : strongholdList) {
+            String strongholdId = stronghold.get("Id").toString();
+
+            List<Player> occupyPlayers = occupies.get(strongholdId);
+
+            for (int i = 0; i < occupyPlayers.size(); i++) {
+                Player player1 = occupyPlayers.get(i);
+                if (player1.getName().equals(event.getPlayer().getName())) {
+                    occupyPlayers.remove(i);
+                    i -= 1;
+                }
+            }
+        }
+    }
+
+    private void OccupyDetect() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            Collection<? extends Player> online = Bukkit.getOnlinePlayers();
+            List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
+
+            for (Map<?, ?> stronghold : strongholdList) {
+                @SuppressWarnings("unchecked")
+                List<Integer> position = (List<Integer>) stronghold.get("Position");
+                int x = position.get(0);
+                int y = position.get(1);
+                int z = position.get(2);
+
+                @SuppressWarnings("unchecked")
+                List<Integer> range = (List<Integer>) stronghold.get("Range");
+                int rangeX = range.get(0);
+                int rangeY = range.get(1);
+                int rangeZ = range.get(2);
+
+                int xRange = (rangeX - 1) / 2;
+                int yRange = (rangeY - 1) / 2;
+                int zRange = (rangeZ - 1) / 2;
+
+                String strongholdId = stronghold.get("Id").toString();
+
+                if (!occupies.containsKey(strongholdId)) {
+                    occupies.put(strongholdId, new ArrayList<>() {});
+                }
+
+                List<Player> occupyPlayers = occupies.get(strongholdId);
+
+                for (Player player: online) {
+                    Location location = player.getLocation();
+
+                    if (location.getX() >= x - xRange && location.getX() <= x + xRange &&
+                            location.getY() >= y - yRange && location.getY() <= y + yRange &&
+                            location.getZ() >= z - zRange && location.getZ() <= z + zRange) {
+                        if (occupies.containsKey(strongholdId)) {
+                            boolean hasPlayer = false;
+                            for (Player player1 : occupyPlayers) {
+                                if (player1.getName().equals(player.getName())) {
+                                    hasPlayer = true;
+                                }
+                            }
+                            if (!hasPlayer) {
+                                occupyPlayers.add(player);
+                            }
+                        }
+                    } else {
+                        for (int i = 0; i < occupyPlayers.size(); i++) {
+                            Player player1 = occupyPlayers.get(i);
+                            if (player1.getName().equals(player.getName())) {
+                                occupyPlayers.remove(i);
+                                i -= 1;
+                            }
+                        }
+                    }
+                }
+
+                int occupiersNumber = occupyPlayers.size();
+                if (occupiersNumber >= 1) {
+                    try {
+                        List<Team> occupiersTeam = new ArrayList<>();
+                        for (Player player: occupyPlayers) {
+                            String name = player.getName();
+                            Team team = RobotMain.getPlayerTeam(name);
+                            if (!occupiersTeam.contains(team)) {
+                                occupiersTeam.add(team);
+                            }
+                        }
+
+                        ConfigurationSection section = data.getConfigurationSection(strongholdId);
+
+                        if (section != null) {
+                            if (occupiersTeam.size() == 1) {
+                                Team team = occupiersTeam.get(0);
+                                int occupyPercentage = section.getInt("OccupyPercentage");
+
+                                String OccupyTeam = "Team"+team;
+                                if (!stronghold.get("OwnerTeam").equals(OccupyTeam)) {
+                                    if (occupyPercentage != 100) {
+                                        section.set("OccupyTeam", OccupyTeam);
+                                        occupyPercentage += 1;
+                                    }
+                                } else {
+                                    if (occupyPercentage != 0) {
+                                        section.set("OccupyTeam", "");
+                                        occupyPercentage -= 1;
+                                    }
+                                }
+                                this.getLogger().warning(String.valueOf(occupyPercentage));
+                                section.set("OccupyPercentage", occupyPercentage);
+                            }
+                        }
+                    } catch (Exception e) {
+                        this.getLogger().warning(e.toString());
+                    }
+                }
+            }
+        }, 0, 20);
     }
 
     private boolean protectAreaOfStrongHold(Block block) {
