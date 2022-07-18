@@ -21,9 +21,9 @@ import org.geysermc.floodgate.api.FloodgateApi;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LoginMain extends JavaPlugin implements Listener {
@@ -73,14 +73,26 @@ public class LoginMain extends JavaPlugin implements Listener {
             }
             configuration.save(configFile);
 
-            var databaseSection = Objects.requireNonNull(
-                    configuration.getConfigurationSection("Database"));
-            Class.forName("com.mysql.jdbc.Driver");
-            databaseConnection = DriverManager.getConnection(
-                    String.format("jdbc:mysql://%s?autoReconnect=true&tcpKeepAlive=true", databaseSection.get("Host")),
-                    Objects.requireNonNull(databaseSection.get("Username")).toString(),
-                    Objects.requireNonNull(databaseSection.get("Password")).toString()
-            );
+            tryMakeConnection();
+            (new Timer()).schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        databaseConnection.prepareStatement("select * from player_info").execute();
+                        getLogger().fine("Trying keep MySQL connection....");
+                    } catch (SQLTimeoutException e) {
+                        try {
+                            tryMakeConnection();
+                        } catch (Exception exception) {
+                            getLogger().warning("Really unable to connect!!! Service down!!!");
+                            getLogger().warning(exception.toString());
+                        }
+                    } catch (SQLException throwables) {
+                        getLogger().warning("Unable to process!!! Error!!!");
+                        getLogger().warning(throwables.toString());
+                    }
+                }
+            }, 3 * 60 * 1000);
 
             this.getServer().getPluginManager().registerEvents(this, this);
         } catch (Exception e) {
@@ -95,6 +107,17 @@ public class LoginMain extends JavaPlugin implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void tryMakeConnection() throws SQLException, ClassNotFoundException {
+        var databaseSection = Objects.requireNonNull(
+                configuration.getConfigurationSection("Database"));
+        Class.forName("com.mysql.jdbc.Driver");
+        databaseConnection = DriverManager.getConnection(
+                String.format("jdbc:mysql://%s?autoReconnect=true&tcpKeepAlive=true", databaseSection.get("Host")),
+                Objects.requireNonNull(databaseSection.get("Username")).toString(),
+                Objects.requireNonNull(databaseSection.get("Password")).toString()
+        );
     }
 
     @EventHandler (
