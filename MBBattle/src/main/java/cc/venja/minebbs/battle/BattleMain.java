@@ -363,6 +363,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 }
                                 this.getLogger().warning(String.valueOf(occupyPercentage));
                                 section.set("OccupyPercentage", occupyPercentage);
+                                data.save(dataFile);
                             }
                         }
                     } catch (Exception e) {
