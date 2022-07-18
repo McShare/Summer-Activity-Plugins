@@ -4,6 +4,7 @@ import cc.venja.minebbs.login.commands.AutoLoginCommand;
 import cc.venja.minebbs.login.commands.LoginCommand;
 import cc.venja.minebbs.login.commands.RegisterCommand;
 import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -41,6 +42,8 @@ public class LoginMain extends JavaPlugin implements Listener {
     public YamlConfiguration configuration;
     public Connection databaseConnection;
 
+    private Timer timer = new Timer();
+
     @Override
     public void onEnable() {
         this.getLogger().warning("§b____   ____                 __        ");
@@ -74,25 +77,25 @@ public class LoginMain extends JavaPlugin implements Listener {
             configuration.save(configFile);
 
             tryMakeConnection();
-            (new Timer()).schedule(new TimerTask() {
+            timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
+                    LoginMain.instance.getLogger().warning("Trying keep MySQL connection....");
                     try {
-                        databaseConnection.prepareStatement("select * from player_info").execute();
-                        getLogger().fine("Trying keep MySQL connection....");
-                    } catch (SQLTimeoutException e) {
+                        databaseConnection.prepareStatement("select * from player_info where player_name='onlyfortest'").execute();
+                    } catch (SQLTimeoutException | CommunicationsException e) {
                         try {
                             tryMakeConnection();
                         } catch (Exception exception) {
-                            getLogger().warning("Really unable to connect!!! Service down!!!");
-                            getLogger().warning(exception.toString());
+                            LoginMain.instance.getLogger().warning("Really unable to connect!!! Service down!!!");
+                            LoginMain.instance.getLogger().warning(exception.toString());
                         }
-                    } catch (SQLException throwables) {
-                        getLogger().warning("Unable to process!!! Error!!!");
-                        getLogger().warning(throwables.toString());
+                    } catch (SQLException exception) {
+                        LoginMain.instance.getLogger().warning("Unable to process!!! Error!!!");
+                        LoginMain.instance.getLogger().warning(exception.toString());
                     }
                 }
-            }, 3 * 60 * 1000);
+            }, 0, 3 * 60 * 1000);
 
             this.getServer().getPluginManager().registerEvents(this, this);
         } catch (Exception e) {
@@ -114,7 +117,7 @@ public class LoginMain extends JavaPlugin implements Listener {
                 configuration.getConfigurationSection("Database"));
         Class.forName("com.mysql.jdbc.Driver");
         databaseConnection = DriverManager.getConnection(
-                String.format("jdbc:mysql://%s?autoReconnect=true&tcpKeepAlive=true", databaseSection.get("Host")),
+                String.format("jdbc:mysql://%s?autoReconnect=true&tcpKeepAlive=true&characterEncoding=utf8&useSSL=true", databaseSection.get("Host")),
                 Objects.requireNonNull(databaseSection.get("Username")).toString(),
                 Objects.requireNonNull(databaseSection.get("Password")).toString()
         );
