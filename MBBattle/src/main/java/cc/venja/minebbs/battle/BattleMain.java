@@ -176,7 +176,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 if (data.get(map.get("Id").toString()) == null) {
                     data.set(map.get("Id").toString(), new HashMap<String, Object>() {
                         {
-                            put("OccupyPercentage", 0);
+                            put("OccupyPercentage", 0.0);
                             put("OccupyTeam", "");
                         }
                     });
@@ -379,12 +379,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                                 String OccupyTeam = team.getName();
                                 if (!ownerTeam.equals(OccupyTeam)) {
-                                    if (occupyPercentage != 100) {
+                                    if (occupyPercentage != 1) {
                                         section.set("OccupyTeam", OccupyTeam);
-                                        occupyPercentage += 1;
+                                        occupyPercentage += 0.01;
                                     }
 
-                                    if (occupyPercentage == 100) {
+                                    if (occupyPercentage == 1) {
                                         String occupied = "";
                                         String occupyTeam = section.getString("OccupyTeam");
                                         if (!Objects.equals(occupyTeam, "")) {
@@ -402,11 +402,10 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 } else {
                                     if (occupyPercentage != 0) {
                                         section.set("OccupyTeam", "");
-                                        occupyPercentage -= 1;
+                                        occupyPercentage -= 0.01;
                                     }
                                 }
-                                this.getLogger().warning(String.valueOf(occupyPercentage));
-                                occupyShow.setProgress(occupyPercentage/100.0);
+                                occupyShow.setProgress(occupyPercentage);
                                 section.set("OccupyPercentage", occupyPercentage);
                                 data.save(dataFile);
                             }
