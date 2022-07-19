@@ -5,6 +5,10 @@ import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -25,6 +29,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Supplier;
 
 public class BattleMain extends JavaPlugin implements Listener {
     public static BattleMain instance;
@@ -104,7 +109,7 @@ public class BattleMain extends JavaPlugin implements Listener {
         Location location = event.getRespawnedLocation();
 
         Team teamValue = RobotMain.getPlayerTeam(event.getPlayer().getName());
-        String team = "Team" + teamValue;
+        String team = Objects.requireNonNull(teamValue).getName();
 
         List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
                 getDoubleList("RespawnPosition");
@@ -273,6 +278,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     private void OccupyDetect() {
+        Map<String, BossBar> bossBarMap = new HashMap<>();
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             Collection<? extends Player> online = Bukkit.getOnlinePlayers();
             List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
@@ -296,11 +302,34 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                 String strongholdId = stronghold.get("Id").toString();
 
+                ConfigurationSection section = data.getConfigurationSection(strongholdId);
+
+                String ownerTeam = stronghold.get("OwnerTeam").toString();
+
                 if (!occupies.containsKey(strongholdId)) {
                     occupies.put(strongholdId, new ArrayList<>() {});
                 }
 
                 List<Player> occupyPlayers = occupies.get(strongholdId);
+                int occupiersNumber = occupyPlayers.size();
+
+                if (!bossBarMap.containsKey(strongholdId)) {
+                    Team team = Team.getByName(ownerTeam);
+                    String ownerTeamWithColor = Team.getColorCode(team)+team.getName()+"§r";
+                    String bossBarTitle = String.format("%s 所属队伍: %s", strongholdId, ownerTeamWithColor);
+                    Map<Team, BarColor> TeamColorRefer = new HashMap<>() {
+                        {
+                            put(Team.RED, BarColor.RED);
+                            put(Team.BLUE, BarColor.BLUE);
+                            put(Team.GREY, BarColor.WHITE);
+                            put(Team.YELLOW, BarColor.YELLOW);
+                        }
+                    };
+                    var occupyShow = Bukkit.createBossBar(bossBarTitle,
+                            TeamColorRefer.get(Team.getByName(ownerTeam)), BarStyle.SOLID, BarFlag.CREATE_FOG);
+                    bossBarMap.put(strongholdId, occupyShow);
+                }
+                var occupyShow = bossBarMap.get(strongholdId);
 
                 for (Player player: online) {
                     Location location = player.getLocation();
@@ -316,6 +345,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 }
                             }
                             if (!hasPlayer) {
+                                occupyShow.addPlayer(player);
                                 occupyPlayers.add(player);
                             }
                         }
@@ -323,6 +353,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                         for (int i = 0; i < occupyPlayers.size(); i++) {
                             Player player1 = occupyPlayers.get(i);
                             if (player1.getName().equals(player.getName())) {
+                                occupyShow.removePlayer(player);
                                 occupyPlayers.remove(i);
                                 i -= 1;
                             }
@@ -330,7 +361,6 @@ public class BattleMain extends JavaPlugin implements Listener {
                     }
                 }
 
-                int occupiersNumber = occupyPlayers.size();
                 if (occupiersNumber >= 1) {
                     try {
                         List<Team> occupiersTeam = new ArrayList<>();
@@ -342,18 +372,32 @@ public class BattleMain extends JavaPlugin implements Listener {
                             }
                         }
 
-                        ConfigurationSection section = data.getConfigurationSection(strongholdId);
-
                         if (section != null) {
                             if (occupiersTeam.size() == 1) {
                                 Team team = occupiersTeam.get(0);
                                 int occupyPercentage = section.getInt("OccupyPercentage");
 
-                                String OccupyTeam = "Team"+team;
-                                if (!stronghold.get("OwnerTeam").equals(OccupyTeam)) {
+                                String OccupyTeam = team.getName();
+                                if (!ownerTeam.equals(OccupyTeam)) {
                                     if (occupyPercentage != 100) {
                                         section.set("OccupyTeam", OccupyTeam);
                                         occupyPercentage += 1;
+                                    }
+
+                                    if (occupyPercentage == 100) {
+                                        String occupied = "";
+                                        String occupyTeam = section.getString("OccupyTeam");
+                                        if (!Objects.equals(occupyTeam, "")) {
+                                            Team occupyTeamObj = Team.getByName(occupyTeam);
+                                            String occupyTeamWithColor = Team.getColorCode(occupyTeamObj)+occupyTeam+"§r";
+                                            occupied = String.format("已被 %s 占领", occupyTeamWithColor);
+                                        }
+                                        Team ownerTeamObj = Team.getByName(ownerTeam);
+                                        String ownerTeamWithColor = Team.getColorCode(ownerTeamObj)+ownerTeam+"§r";
+                                        occupyShow.setTitle(
+                                                String.format("%s 所属队伍: %s %s",
+                                                        strongholdId, ownerTeamWithColor, occupied)
+                                        );
                                     }
                                 } else {
                                     if (occupyPercentage != 0) {
@@ -362,6 +406,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                     }
                                 }
                                 this.getLogger().warning(String.valueOf(occupyPercentage));
+                                occupyShow.setProgress(occupyPercentage/100.0);
                                 section.set("OccupyPercentage", occupyPercentage);
                                 data.save(dataFile);
                             }
