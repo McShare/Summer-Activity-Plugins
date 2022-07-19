@@ -7,3 +7,7 @@ api-version: 1.13
 softdepend:
   - MBLogin
   - MBRobot
+
+commands:
+  generate-stronghold:
+    description: 手动生成指定据点

@@ -1,5 +1,6 @@
 package cc.venja.minebbs.battle;
 
+import cc.venja.minebbs.battle.commands.GenerateStrongHoldCommand;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
@@ -20,16 +21,13 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.Supplier;
 
 public class BattleMain extends JavaPlugin implements Listener {
     public static BattleMain instance;
@@ -40,7 +38,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     public File configFile;
-    public YamlConfiguration configuration;
+    public static YamlConfiguration configuration;
 
     public File dataFile;
     public YamlConfiguration data;
@@ -49,6 +47,8 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
+
         try {
             configFile = new File(this.getDataFolder().toPath().resolve("config.yml").toString()).getAbsoluteFile();
             var configExists = configFile.exists();
@@ -165,7 +165,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 Block glass = world.getBlockAt(x, y, z);
                 glass.setType(glassMaterial);
 
-                Block ironBlock = null;
+                Block ironBlock;
                 for (int x2 = -1; x2 < 2; x2++) {
                     for (int z2 = -1; z2 < 2; z2++) {
                         ironBlock = world.getBlockAt(x+x2, y-2, z+z2);
