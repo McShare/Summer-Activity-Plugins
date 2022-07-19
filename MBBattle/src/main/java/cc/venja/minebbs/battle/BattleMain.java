@@ -1,6 +1,8 @@
 package cc.venja.minebbs.battle;
 
 import cc.venja.minebbs.battle.commands.GenerateStrongHoldCommand;
+import cc.venja.minebbs.battle.data.PlayerData;
+import cc.venja.minebbs.battle.scores.ScoreHandle;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
@@ -18,9 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
-import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,11 +37,18 @@ public class BattleMain extends JavaPlugin implements Listener {
         instance = this;
     }
 
-    public File configFile;
+    public static File configFile;
     public static YamlConfiguration configuration;
 
-    public File dataFile;
-    public YamlConfiguration data;
+    public static File dataFile;
+    public static YamlConfiguration data;
+
+    public static File teamScoreFile;
+    public static YamlConfiguration teamScore;
+
+    public static File personalScoreFile;
+    public static YamlConfiguration personalScore;
+
 
     public Map<String, List<Player>> occupies = new HashMap<>();
 
@@ -87,6 +94,12 @@ public class BattleMain extends JavaPlugin implements Listener {
             dataFile = new File(this.getDataFolder().toPath().resolve("data.yml").toString()).getAbsoluteFile();
             data = YamlConfiguration.loadConfiguration(dataFile);
 
+            teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team.yml").toString()).getAbsoluteFile();
+            teamScore = YamlConfiguration.loadConfiguration(dataFile);
+
+            teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal.yml").toString()).getAbsoluteFile();
+            teamScore = YamlConfiguration.loadConfiguration(dataFile);
+
             this.getServer().getPluginManager().registerEvents(this, this);
         } catch (Exception e) {
             e.printStackTrace();
@@ -100,6 +113,11 @@ public class BattleMain extends JavaPlugin implements Listener {
         if (damager.getType().equals(EntityType.PLAYER) && damagee.getType().equals(EntityType.PLAYER)) {
             if (RobotMain.getPlayerTeam(damager.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
                 event.setCancelled(true);
+            }
+            Player pDamager = (Player) damager;
+            Player pDamagee = (Player) damagee;
+            if (event.getFinalDamage() >= pDamagee.getHealth()) {
+                ScoreHandle.onKillPlayer(pDamager);
             }
         }
     }
@@ -250,6 +268,11 @@ public class BattleMain extends JavaPlugin implements Listener {
                 break;
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        ScoreHandle.onPlayerDeath(event.getPlayer());
     }
 
     @EventHandler
