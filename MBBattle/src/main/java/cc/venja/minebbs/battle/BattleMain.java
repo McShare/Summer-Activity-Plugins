@@ -77,6 +77,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 put("Position", new int[] {0, 0, 0});
                                 put("OwnerTeam", "TeamRED");
                                 put("Range", new int[] {7, 7, 7});
+                                put("OccupyTime", 10);
                             }
                         });
                     }
@@ -377,16 +378,21 @@ public class BattleMain extends JavaPlugin implements Listener {
                         if (section != null) {
                             if (occupiersTeam.size() == 1) {
                                 Team team = occupiersTeam.get(0);
-                                int occupyPercentage = section.getInt("OccupyPercentage");
+                                double occupyPercentage = section.getDouble("OccupyPercentage");
 
                                 String OccupyTeam = team.getName();
+                                double OccupyTime = (double) stronghold.get("OccupyTime");
                                 if (!ownerTeam.equals(OccupyTeam)) {
-                                    if (occupyPercentage != 1) {
+                                    if (occupyPercentage < 1.0) {
                                         section.set("OccupyTeam", OccupyTeam);
-                                        occupyPercentage += 0.01;
+                                        occupyPercentage += 1.0/OccupyTime;
                                     }
 
-                                    if (occupyPercentage == 1) {
+                                    if (occupyPercentage > 1.0) {
+                                        occupyPercentage = 1.0;
+                                    }
+
+                                    if (occupyPercentage == 1.0) {
                                         String occupied = "";
                                         String occupyTeam = section.getString("OccupyTeam");
                                         if (!Objects.equals(occupyTeam, "")) {
@@ -402,9 +408,9 @@ public class BattleMain extends JavaPlugin implements Listener {
                                         );
                                     }
                                 } else {
-                                    if (occupyPercentage != 0) {
+                                    if (occupyPercentage != 0.0) {
                                         section.set("OccupyTeam", "");
-                                        occupyPercentage -= 0.01;
+                                        occupyPercentage -= 1.0/OccupyTime;
                                     }
                                 }
                                 occupyShow.setProgress(occupyPercentage);
