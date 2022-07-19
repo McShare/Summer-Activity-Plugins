@@ -6,6 +6,8 @@ import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
@@ -437,6 +439,18 @@ public class BattleMain extends JavaPlugin implements Listener {
             if (location.getBlockX() >= minLocation.getBlockX() && location.getBlockX() <= maxLocation.getBlockX()) {
                 if (location.getBlockY() >= minLocation.getBlockY() && location.getBlockY() <= maxLocation.getBlockY()) {
                     if (location.getBlockZ() >= minLocation.getBlockZ() && location.getBlockZ() <= maxLocation.getBlockZ()) {
+                        return true;
+                    }
+                }
+            }
+
+            if (location.getBlockX() == x && location.getBlockZ() == z && location.getBlockY() > y) {
+                if (block.getBlockData().getMaterial().isOccluding()) {
+                    return true;
+                } else {
+                    Material material = block.getBlockData().getMaterial();
+                    String materialString = block.getBlockData().getMaterial().toString();
+                    if (material.equals(Material.TINTED_GLASS) || materialString.contains("STAINED")) {
                         return true;
                     }
                 }
