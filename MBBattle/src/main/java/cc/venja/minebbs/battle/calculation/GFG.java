@@ -2,17 +2,17 @@ package cc.venja.minebbs.battle.calculation;
 
 import org.bukkit.util.Vector;
 
-class GFG
+public class GFG
 {
  
     // Define Infinite (Using INT_MAX
     // caused overflow problems)
-    static int INF = 10000;
+    public static int INF = 10000;
  
     // Given three collinear points p, q, r,
     // the function checks if point q lies
     // on line segment 'pr'
-    static boolean onSegment(Vector p, Vector q, Vector r)
+    public static boolean onSegment(Vector p, Vector q, Vector r)
     {
         return q.getBlockX() <= Math.max(p.getBlockX(), r.getBlockX()) &&
                 q.getBlockX() >= Math.min(p.getBlockX(), r.getBlockX()) &&
@@ -25,7 +25,7 @@ class GFG
     // 0 --> p, q and r are collinear
     // 1 --> Clockwise
     // 2 --> Counterclockwise
-    static int orientation(Vector p, Vector q, Vector r)
+    public static int orientation(Vector p, Vector q, Vector r)
     {
         int val = (q.getBlockY() - p.getBlockY()) * (r.getBlockX() - q.getBlockX())
                 - (q.getBlockX() - p.getBlockX()) * (r.getBlockY() - q.getBlockY());
@@ -39,7 +39,7 @@ class GFG
  
     // The function that returns true if
     // line segment 'p1q1' and 'p2q2' intersect.
-    static boolean doIntersect(Vector p1, Vector q1,
+    public static boolean doIntersect(Vector p1, Vector q1,
                             Vector p2, Vector q2)
     {
         // Find the four orientations needed for
@@ -85,7 +85,7 @@ class GFG
  
     // Returns true if the point p lies
     // inside the polygon[] with n vertices
-    static boolean isInside(Vector[] polygon, int n, Vector p)
+    public static boolean isInside(Vector[] polygon, int n, Vector p)
     {
         // There must be at least 3 vertices in polygon[]
         if (n < 3)

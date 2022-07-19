@@ -1,5 +1,6 @@
 package cc.venja.minebbs.battle;
 
+import cc.venja.minebbs.battle.arena.ArenaSystem;
 import cc.venja.minebbs.battle.commands.GenerateStrongHoldCommand;
 import cc.venja.minebbs.battle.data.PlayerData;
 import cc.venja.minebbs.battle.scores.ScoreHandle;
@@ -52,6 +53,8 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public Map<String, List<Player>> occupies = new HashMap<>();
 
+    public ArenaSystem arenaSystem;
+
     @Override
     public void onEnable() {
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
@@ -101,6 +104,8 @@ public class BattleMain extends JavaPlugin implements Listener {
             teamScore = YamlConfiguration.loadConfiguration(dataFile);
 
             this.getServer().getPluginManager().registerEvents(this, this);
+
+            arenaSystem = new ArenaSystem();
         } catch (Exception e) {
             e.printStackTrace();
         }
