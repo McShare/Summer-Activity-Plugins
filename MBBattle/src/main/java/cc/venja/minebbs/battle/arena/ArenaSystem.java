@@ -5,14 +5,18 @@ import cc.venja.minebbs.battle.calculation.GFG;
 import cc.venja.minebbs.login.LoginMain;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
@@ -129,6 +133,49 @@ public class ArenaSystem implements Listener {
     }
 
     @EventHandler
+    public void onEntityMove(ProjectileHitEvent event) throws SQLException {
+        if (event.getEntity().getShooter() instanceof Player player) {
+            Team team = RobotMain.getPlayerTeam(player.getName());
+            String teamStr = Objects.requireNonNull(team).getName();
+            List<String> vectorStr = configuration.getStringList(teamStr);
+            List<Vector> vectors = new ArrayList<>();
+            for (String str : vectorStr) {
+                vectors.add(strToVector(str));
+            }
+            Location location = null;
+            if (event.getHitEntity() != null) {
+                location = event.getHitEntity().getLocation();
+            }
+            if (event.getHitBlock() != null) {
+                location = event.getHitBlock().getLocation();
+            }
+            if (location != null) {
+                Vector to = new Vector(location.getX(), location.getZ(), 0);
+
+                Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
+                if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
+                    if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
+                        event.setCancelled(true);
+                        event.getEntity().setVelocity(new Vector(0, 0, 0));
+                        event.getEntity().remove();
+                        Audience.audience(player).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+                    }
+                }
+
+                String enable = "Enable" + teamStr;
+                if (configuration.getBoolean(enable)) {
+                    if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
+                        event.setCancelled(true);
+                        event.getEntity().setVelocity(new Vector(0, 0, 0));
+                        event.getEntity().remove();
+                        Audience.audience(player).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onMove(PlayerMoveEvent event) throws SQLException {
         if (LoginMain.instance.onlinePlayers.get(event.getPlayer()) == LoginMain.Status.LOGIN) {
             Team team = RobotMain.getPlayerTeam(event.getPlayer().getName());
@@ -138,18 +185,21 @@ public class ArenaSystem implements Listener {
             for (String str : vectorStr) {
                 vectors.add(strToVector(str));
             }
+            // Bukkit.getLogger().info(event.getTo().toString());
             Vector to = new Vector(event.getTo().getX(), event.getTo().getZ(), 0);
 
             Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
             if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
                 if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
                     if (!event.getPlayer().isOp()) {
-                        event.setCancelled(true);
                         Location location = playerLocationMap.get(event.getPlayer());
                         if (location != null) {
-                            event.getPlayer().teleport(location);
-                            Bukkit.getLogger().info(location.toString());
+                            event.getPlayer().teleport(location.set(235.0, -60, 235.0));
+                            // Bukkit.getLogger().info(location.toString());
                         }
+
+                        event.getPlayer().setVelocity(getVelocity((event.getTo().getX() - event.getFrom().getX()), (event.getTo().getZ() - event.getFrom().getZ()), 0.4));
+                        event.setCancelled(true);
                         Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
                     }
                 }
@@ -163,7 +213,7 @@ public class ArenaSystem implements Listener {
                         Location location = playerLocationMap.get(event.getPlayer());
                         if (location != null) {
                             event.getPlayer().teleport(location);
-                            Bukkit.getLogger().info(location.toString());
+                            // Bukkit.getLogger().info(location.toString());
                         }
                         Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c不可逾越允许活动范围"));
                     }
@@ -171,6 +221,12 @@ public class ArenaSystem implements Listener {
             }
             isPlayerEnterPortal(teamStr, event.getPlayer());
         }
+    }
+
+    private Vector getVelocity(double x, double z, double speed) {
+        double y = 0.3333;
+        double multiplier = Math.sqrt((speed*speed) / (x*x + y*y + z*z));
+        return new Vector(x, y, z).multiply(multiplier).setY(y);
     }
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
@@ -194,7 +250,7 @@ public class ArenaSystem implements Listener {
     public void syncPlayerLocation() throws SQLException {
         for (Player player : BattleMain.instance.getServer().getOnlinePlayers()) {
             Team team = RobotMain.getPlayerTeam(player.getName());
-            String teamStr = "Team" + Objects.requireNonNull(team).getName();
+            String teamStr = Objects.requireNonNull(team).getName();
             String enable = "Enable" + teamStr;
             if (configuration.getBoolean(enable)) {
                 List<String> vectorStr = configuration.getStringList(teamStr);
@@ -213,6 +269,9 @@ public class ArenaSystem implements Listener {
 
                 boolean inside = GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), playerV2);
 
+                if (playerLocationMap.get(player) != null) {
+                    Audience.audience(player).sendActionBar(Component.text(playerLocationMap.get(player).toString()));
+                }
                 if (center && inside) {
                     playerLocationMap.put(player, player.getLocation());
                 }
