@@ -337,7 +337,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 String ownerTeam = stronghold.get("OwnerTeam").toString();
 
                 if (!occupies.containsKey(strongholdId)) {
-                    occupies.put(strongholdId, new ArrayList<>() {});
+                    occupies.put(strongholdId, new ArrayList<>(){});
                 }
 
                 List<Player> occupyPlayers = occupies.get(strongholdId);
@@ -408,7 +408,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 double occupyPercentage = section.getDouble("OccupyPercentage");
 
                                 String OccupyTeam = team.getName();
-                                double OccupyTime = (double) stronghold.get("OccupyTime");
+                                double OccupyTime = (int)stronghold.get("OccupyTime");
                                 if (!ownerTeam.equals(OccupyTeam)) {
                                     if (occupyPercentage < 1.0) {
                                         section.set("OccupyTeam", OccupyTeam);
