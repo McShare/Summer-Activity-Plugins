@@ -9,7 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.scoreboard.Team;
+import cc.venja.minebbs.login.enums.Team;
 import org.bukkit.util.Vector;
 
 import java.io.File;
