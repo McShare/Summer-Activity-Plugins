@@ -173,7 +173,6 @@ public class ArenaSystem implements Listener {
         }
     }
 
-    public Map<Player, Location> playerLocationMap = new ConcurrentHashMap<>();
     public void isPlayerEnterPortal(String TeamStr, Player event) {
         Location loc = event.getLocation();
         List<String> scope = configuration.getStringList(TeamStr + "Portal");// 对应队伍传送门范围
