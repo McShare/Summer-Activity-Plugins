@@ -352,8 +352,9 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     public void onGameStatusChange(GameStatusChangeEvent event) {
-        if (event.beforeStatus.equals(GameStatus.OFF_DEF_DAY)) {
-            try {
+        try {
+            if (event.beforeStatus.equals(GameStatus.OFF_DEF_DAY)) {
+
                 List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
 
                 for (Map<?, ?> stronghold : strongholdList) {
@@ -379,11 +380,44 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                     }
                 }
-            } catch (Exception e) {
-                this.getLogger().warning(e.toString());
+
+                teleportAllPlayerToCorrTeamBase();
+            } else if (event.beforeStatus.equals(GameStatus.BATTLE_DAY)) {
+                teleportAllPlayerToCorrTeamBase();
+                // TODO
+                // 关闭传送通道
+            } else if (event.nowStatus.equals(GameStatus.BATTLE_DAY)) {
+                teleportAllPlayerToCorrTeamBase();
+                // TODO
+                // 开启传送通道
             }
+        } catch (Exception e) {
+            this.getLogger().warning(e.toString());
         }
     }
+
+    private void teleportAllPlayerToCorrTeamBase() throws Exception {
+        for (Player player: Bukkit.getOnlinePlayers()) {
+            teleportPlayerToTeamBase(player);
+        }
+    }
+
+    private void teleportPlayerToTeamBase(Player player) throws Exception {
+        Team teamValue = RobotMain.getPlayerTeam(player.getName());
+        String team = Objects.requireNonNull(teamValue).getName();
+
+        List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
+                getDoubleList("RespawnPosition");
+        World world = Bukkit.getWorld("world");
+        double x = respawnPosition.get(0);
+        double y = respawnPosition.get(1);
+        double z = respawnPosition.get(2);
+
+        Location respawnLocation = new Location(world, x, y, z);
+
+        player.teleport(respawnLocation);
+    }
+
     private void OccupyDetect() {
         Map<String, BossBar> bossBarMap = new HashMap<>();
 
