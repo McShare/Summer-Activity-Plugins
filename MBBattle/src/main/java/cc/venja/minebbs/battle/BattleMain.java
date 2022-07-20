@@ -72,7 +72,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                 configuration.set("TeamRED", teamConfig);
                 configuration.set("TeamBLUE", teamConfig);
-                configuration.set("TeamGRAY", teamConfig);
+                configuration.set("TeamGREY", teamConfig);
                 configuration.set("TeamYELLOW", teamConfig);
 
                 configuration.set("RespawnCooldown", 20);
