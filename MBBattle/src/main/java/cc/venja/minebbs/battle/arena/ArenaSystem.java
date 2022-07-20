@@ -112,6 +112,12 @@ public class ArenaSystem implements Listener {
             }});
             configuration.set("TeamYELLOWPortalEnd", "1103,108,1298");
 
+            configuration.set("Assembling", false);
+            configuration.set("TeamREDAssemblePoint", "");
+            configuration.set("TeamBLUEAssemblePoint", "");
+            configuration.set("TeamGREYAssemblePoint", "");
+            configuration.set("TeamYELLOWAssemblePoint", "");
+
             configuration.set("CenterPos", "1040,1040");
             configuration.set("CenterRadius", 400);
             configuration.set("CenterAccess", false);
