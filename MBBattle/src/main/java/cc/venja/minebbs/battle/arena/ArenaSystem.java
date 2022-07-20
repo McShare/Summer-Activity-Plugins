@@ -78,8 +78,10 @@ public class ArenaSystem implements Listener {
         }
         Vector to = new Vector(event.getTo().getX(), event.getTo().getZ(), 0);
         if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
-            event.setCancelled(true);
-            Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+            if (!event.getPlayer().isOp()) {
+                event.setCancelled(true);
+                Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+            }
         }
     }
 
