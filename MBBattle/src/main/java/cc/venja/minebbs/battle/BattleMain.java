@@ -182,7 +182,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 Material glassMaterial = switch (ownerTeam) {
                     case "TeamRED" -> Material.RED_STAINED_GLASS;
                     case "TeamBLUE" -> Material.BLUE_STAINED_GLASS;
-                    case "TeamGRAY" -> Material.GRAY_STAINED_GLASS;
+                    case "TeamGREY" -> Material.GRAY_STAINED_GLASS;
                     case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
                     default -> Material.GLASS;
                 };
