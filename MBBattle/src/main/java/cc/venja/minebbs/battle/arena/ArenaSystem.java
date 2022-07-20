@@ -3,6 +3,7 @@ package cc.venja.minebbs.battle.arena;
 import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.battle.calculation.GFG;
 import cc.venja.minebbs.login.LoginMain;
+import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -13,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import cc.venja.minebbs.login.enums.Team;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
@@ -27,6 +27,7 @@ public class ArenaSystem implements Listener {
 
     public File configFile;
     public YamlConfiguration configuration;
+    public Map<Player, Location> playerLocationMap = new ConcurrentHashMap<>();
 
     public ArenaSystem() throws IOException {
         BattleMain.instance.getServer().getPluginManager().registerEvents(this, BattleMain.instance);
@@ -81,6 +82,32 @@ public class ArenaSystem implements Listener {
             }});
             configuration.set("EnableTeamYELLOW", true);
 
+            configuration.set("EnablePortal", true);
+            configuration.set("TeamREDPortal", new ArrayList<String>() {{
+                //平原 NK 右上
+                add("1848,330");
+                add("1848,336");
+            }});
+            configuration.set("TeamREDPortalEnd", "1103,72,918");
+            configuration.set("TeamBLUEPortal", new ArrayList<String>() {{
+                //雪山 PM 左上
+                add("374,328");
+                add("374,334");
+            }});
+            configuration.set("TeamBLUEPortalEnd", "913,76,1108");
+            configuration.set("TeamGREYPortal", new ArrayList<String>() {{
+                //丛林 BDS 右下
+                add("1730,1707");
+                add("1730,1713");
+            }});
+            configuration.set("TeamGREYPortalEnd", "1293,89,1108");
+            configuration.set("TeamYELLOWPortal", new ArrayList<String>() {{
+                //沙漠 Geyser 左下
+                add("294,1577");
+                add("294,1581");
+            }});
+            configuration.set("TeamYELLOWPortalEnd", "1103,108,1298");
+
             configuration.set("CenterPos", "1040,1040");
             configuration.set("CenterRadius", 400);
             configuration.set("CenterAccess", false);
@@ -103,7 +130,7 @@ public class ArenaSystem implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) throws SQLException {
-        if (LoginMain.instance.onlinePlayers.get(event.getPlayer()) == LoginMain.Status.LOGIN){
+        if (LoginMain.instance.onlinePlayers.get(event.getPlayer()) == LoginMain.Status.LOGIN) {
             Team team = RobotMain.getPlayerTeam(event.getPlayer().getName());
             String teamStr = Objects.requireNonNull(team).getName();
             List<String> vectorStr = configuration.getStringList(teamStr);
@@ -142,10 +169,28 @@ public class ArenaSystem implements Listener {
                     }
                 }
             }
+            isPlayerEnterPortal(teamStr, event.getPlayer());
         }
     }
 
     public Map<Player, Location> playerLocationMap = new ConcurrentHashMap<>();
+    public void isPlayerEnterPortal(String TeamStr, Player event) {
+        Location loc = event.getLocation();
+        List<String> scope = configuration.getStringList(TeamStr + "Portal");// 对应队伍传送门范围
+        List<Vector> scopePoint = new ArrayList<>();
+        for (String str : scope) {
+            scopePoint.add(strToVector(str));
+        }
+
+        if (scopePoint.get(0).getX() == loc.getX() && Math.max(scopePoint.get(0).getY(), loc.getZ()) == Math.min(loc.getZ(), scopePoint.get(1).getY())) {
+            //在区域内
+            String end = configuration.getString(TeamStr + "PortalEnd");
+            assert end != null;
+            Vector endPoint = new Vector(Integer.parseInt(end.split(",")[0]), Integer.parseInt(end.split(",")[1]), Integer.parseInt(end.split(",")[2]));
+            Location newLocation = new Location(event.getWorld(), endPoint.getX(), endPoint.getY(), endPoint.getZ());
+            event.teleport(newLocation);
+        }
+    }
 
     public void syncPlayerLocation() throws SQLException {
         for (Player player : BattleMain.instance.getServer().getOnlinePlayers()) {
