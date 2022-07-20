@@ -74,7 +74,7 @@ public class ArenaSystem implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent event) throws SQLException {
         Team team = RobotMain.getPlayerTeam(event.getPlayer().getName());
-        String teamStr = "Team" + Objects.requireNonNull(team);
+        String teamStr = Objects.requireNonNull(team).getName();
         List<String> vectorStr = configuration.getStringList(teamStr);
         List<Vector> vectors = new ArrayList<>();
         for (String str : vectorStr) {
