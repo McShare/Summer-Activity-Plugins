@@ -34,10 +34,10 @@ public class ArenaSystem implements Listener {
             configuration.set("TeamRED", new ArrayList<String>() {{
                 add("230,230");
                 add("1314,230");
-                add("230,910");
-                add("888,1022");
-                add("1060,832");
                 add("1094,402");
+                add("1060,832");
+                add("888,1022");
+                add("230,910");
             }});
             configuration.set("TeamBLUE", new ArrayList<String>() {{
                 add("1334,230");
@@ -51,15 +51,19 @@ public class ArenaSystem implements Listener {
                 add("230,930");
                 add("230,1850");
                 add("1260,1850");
+                add("1052,1272");
                 add("1012,1272");
+                add("900,1176");
                 add("880,1052");
             }});
             configuration.set("TeamYELLOW", new ArrayList<String>() {{
                 add("1460,1850");
                 add("1850,1850");
                 add("1850,1130");
-                add("1250,1100");
+                add("1294,1032");
+                add("1280,1178");
                 add("1182,1272");
+                add("1072,1272");
             }});
             configuration.set("Center", 400);
         }
@@ -78,8 +82,10 @@ public class ArenaSystem implements Listener {
         }
         Vector to = new Vector(event.getTo().getX(), event.getTo().getZ(), 0);
         if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
-            event.setCancelled(true);
-            Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+            if (!event.getPlayer().isOp()) {
+                event.setCancelled(true);
+                Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+            }
         }
     }
 
