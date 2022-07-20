@@ -84,8 +84,9 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 put("Id", "0");
                                 put("Position", new int[] {0, 0, 0});
                                 put("OwnerTeam", "TeamRED");
-                                put("Range", new int[] {7, 7, 7});
+                                put("ProtectRange", new int[] {7, 7, 7});
                                 put("OccupyTime", 10);
+                                put("OccupyRange", new int[] {5, 5, 5});
                             }
                         });
                     }
@@ -320,7 +321,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 int z = position.get(2);
 
                 @SuppressWarnings("unchecked")
-                List<Integer> range = (List<Integer>) stronghold.get("Range");
+                List<Integer> range = (List<Integer>) stronghold.get("OccupyRange");
                 int rangeX = range.get(0);
                 int rangeY = range.get(1);
                 int rangeZ = range.get(2);
@@ -465,8 +466,18 @@ public class BattleMain extends JavaPlugin implements Listener {
             int y = position.get(1);
             int z = position.get(2);
 
-            Location minLocation = new Location(world, x, y, z).subtract(5, 5, 5);
-            Location maxLocation = new Location(world, x, y, z).add(5, 5, 5);
+            @SuppressWarnings("unchecked")
+            List<Integer> range = (List<Integer>) map.get("ProtectRange");
+            int rangeX = range.get(0);
+            int rangeY = range.get(1);
+            int rangeZ = range.get(2);
+
+            int xRange = (rangeX - 1) / 2;
+            int yRange = (rangeY - 1) / 2;
+            int zRange = (rangeZ - 1) / 2;
+
+            Location minLocation = new Location(world, x, y, z).subtract(xRange, yRange, zRange);
+            Location maxLocation = new Location(world, x, y, z).add(xRange, yRange, zRange);
 
             if (location.getBlockX() >= minLocation.getBlockX() && location.getBlockX() <= maxLocation.getBlockX()) {
                 if (location.getBlockY() >= minLocation.getBlockY() && location.getBlockY() <= maxLocation.getBlockY()) {
