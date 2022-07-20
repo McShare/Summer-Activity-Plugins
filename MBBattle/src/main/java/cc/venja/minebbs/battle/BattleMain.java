@@ -344,7 +344,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
             String name = player.getName();
             Team team = RobotMain.getPlayerTeam(name);
-            player.displayName(Component.text(Team.getColorCode(team)+name));
+            player.displayName(Component.text(Team.getColorCode(Objects.requireNonNull(team))+name));
             this.getLogger().warning(name);
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
@@ -519,12 +519,19 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 Team team = occupiersTeam.get(0);
                                 double occupyPercentage = section.getDouble("OccupyPercentage");
 
-                                String OccupyTeam = team.getName();
-                                double OccupyTime = (int)stronghold.get("OccupyTime");
-                                if (!ownerTeam.equals(OccupyTeam)) {
+                                String occupyTeam = team.getName();
+                                double occupyTime = (int)stronghold.get("OccupyTime");
+
+                                String occupiedTeam = section.getString("OccupyTeam");
+
+                                if (!Objects.equals(occupyTeam, occupiedTeam)) {
+                                    occupyPercentage = 0.0;
+                                }
+
+                                if (!ownerTeam.equals(occupyTeam)) {
                                     if (occupyPercentage < 1.0) {
-                                        section.set("OccupyTeam", OccupyTeam);
-                                        occupyPercentage += 1.0/OccupyTime;
+                                        section.set("OccupyTeam", occupyTeam);
+                                        occupyPercentage += 1.0/occupyTime;
                                     }
 
                                     if (occupyPercentage > 1.0) {
@@ -532,8 +539,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                     }
 
                                     if (occupyPercentage == 1.0) {
-                                        String occupied = "";
-                                        String occupyTeam = section.getString("OccupyTeam");
+                                        String occupied;
                                         if (!Objects.equals(occupyTeam, "")) {
                                             Team occupyTeamObj = Team.getByName(occupyTeam);
                                             String occupyTeamWithColor = Team.getColorCode(occupyTeamObj)+occupyTeam+"§r";
@@ -550,7 +556,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 } else {
                                     if (occupyPercentage != 0.0) {
                                         section.set("OccupyTeam", "");
-                                        occupyPercentage -= 1.0/OccupyTime;
+                                        occupyPercentage -= 1.0/occupyTime;
                                     }
                                 }
                                 occupyShow.setProgress(occupyPercentage);
@@ -608,50 +614,6 @@ public class BattleMain extends JavaPlugin implements Listener {
                     String materialString = block.getBlockData().getMaterial().toString();
                     if (material.equals(Material.TINTED_GLASS) || materialString.contains("STAINED")) {
                         return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    @Deprecated
-    private boolean protectStrongHold(Block block) {
-        List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
-
-        World world = block.getWorld();
-
-        Location location = block.getLocation();
-        for (Map<?, ?> map : strongholdList) {
-            @SuppressWarnings("unchecked")
-            List<Integer> position = (List<Integer>) map.get("Position");
-            int x = position.get(0);
-            int y = position.get(1);
-            int z = position.get(2);
-
-            Location nowLocation = new Location(world, x, y, z);
-
-            if (location.equals(nowLocation)) {
-                return block.getType().equals(Material.RED_STAINED_GLASS) ||
-                        block.getType().equals(Material.BLUE_STAINED_GLASS) ||
-                        block.getType().equals(Material.GRAY_STAINED_GLASS) ||
-                        block.getType().equals(Material.YELLOW_STAINED_GLASS);
-            }
-
-            nowLocation.subtract(0, 1, 0);
-
-            if (location.equals(nowLocation)) {
-                return block.getType().equals(Material.BEACON);
-            }
-
-            for (int x2 = -1; x2 < 2; x2++) {
-                for (int z2 = -1; z2 < 2; z2++) {
-                    nowLocation.set(x+x2, y-2, z+z2);
-
-                    if (location.equals(nowLocation)) {
-                        if (block.getType().equals(Material.IRON_BLOCK)) {
-                            return true;
-                        }
                     }
                 }
             }
