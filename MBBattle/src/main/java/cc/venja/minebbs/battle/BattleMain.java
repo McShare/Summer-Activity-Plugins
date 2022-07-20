@@ -99,10 +99,10 @@ public class BattleMain extends JavaPlugin implements Listener {
             data = YamlConfiguration.loadConfiguration(dataFile);
 
             teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team.yml").toString()).getAbsoluteFile();
-            teamScore = YamlConfiguration.loadConfiguration(dataFile);
+            teamScore = YamlConfiguration.loadConfiguration(teamScoreFile);
 
-            teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal.yml").toString()).getAbsoluteFile();
-            teamScore = YamlConfiguration.loadConfiguration(dataFile);
+            personalScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal.yml").toString()).getAbsoluteFile();
+            personalScore = YamlConfiguration.loadConfiguration(personalScoreFile);
 
             this.getServer().getPluginManager().registerEvents(this, this);
 
