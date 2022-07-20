@@ -47,7 +47,7 @@ public class ArenaSystem implements Listener {
                 add("1082,812");
                 add("1114,412");
             }});
-            configuration.set("TeamGRAY", new ArrayList<String>() {{
+            configuration.set("TeamGREY", new ArrayList<String>() {{
                 add("230,930");
                 add("230,1850");
                 add("1260,1850");
@@ -74,7 +74,7 @@ public class ArenaSystem implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent event) throws SQLException {
         Team team = RobotMain.getPlayerTeam(event.getPlayer().getName());
-        String teamStr = "Team" + Objects.requireNonNull(team);
+        String teamStr = Objects.requireNonNull(team).getName();
         List<String> vectorStr = configuration.getStringList(teamStr);
         List<Vector> vectors = new ArrayList<>();
         for (String str : vectorStr) {
