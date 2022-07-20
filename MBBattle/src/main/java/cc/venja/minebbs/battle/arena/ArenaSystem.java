@@ -40,14 +40,6 @@ public class ArenaSystem implements Listener {
                 add("230,910");
             }});
             configuration.set("TeamBLUE", new ArrayList<String>() {{
-                add("1334,230");
-                add("1850,230");
-                add("1850,1110");
-                add("1294,1010");
-                add("1082,812");
-                add("1114,412");
-            }});
-            configuration.set("TeamGREY", new ArrayList<String>() {{
                 add("230,930");
                 add("230,1850");
                 add("1260,1850");
@@ -55,6 +47,14 @@ public class ArenaSystem implements Listener {
                 add("1012,1272");
                 add("900,1176");
                 add("880,1052");
+            }});
+            configuration.set("TeamGRAY", new ArrayList<String>() {{
+                add("1334,230");
+                add("1850,230");
+                add("1850,1110");
+                add("1294,1010");
+                add("1082,812");
+                add("1114,412");
             }});
             configuration.set("TeamYELLOW", new ArrayList<String>() {{
                 add("1460,1850");
