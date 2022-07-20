@@ -20,6 +20,11 @@ public class GenerateStrongHoldCommand implements CommandExecutor {
     }
 
     public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
+        if (!commandSender.isOp()) {
+            commandSender.sendMessage("§c(!) 你没有权限!");
+            return false;
+        }
+
         if (args.length != 1) {
             commandSender.sendMessage("§c(!) 指令参数不正确, 用法 /generate-stronghold <ID>");
             return false;
