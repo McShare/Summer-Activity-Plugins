@@ -2,7 +2,6 @@ package cc.venja.minebbs.battle.arena;
 
 import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.battle.calculation.GFG;
-import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -10,6 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import cc.venja.minebbs.login.enums.Team;
 import org.bukkit.util.Vector;
 
 import java.io.File;
@@ -32,23 +32,7 @@ public class ArenaSystem implements Listener {
         configuration = YamlConfiguration.loadConfiguration(configFile);
         if (!configExists) {
             configuration.set("TeamRED", new ArrayList<String>() {{
-                add("230,230");
-                add("1314,230");
-                add("1094,402");
-                add("1060,832");
-                add("888,1022");
-                add("230,910");
-            }});
-            configuration.set("TeamBLUE", new ArrayList<String>() {{
-                add("230,930");
-                add("230,1850");
-                add("1260,1850");
-                add("1052,1272");
-                add("1012,1272");
-                add("900,1176");
-                add("880,1052");
-            }});
-            configuration.set("TeamGRAY", new ArrayList<String>() {{
+                //平原 NK 右上
                 add("1334,230");
                 add("1850,230");
                 add("1850,1110");
@@ -56,7 +40,17 @@ public class ArenaSystem implements Listener {
                 add("1082,812");
                 add("1114,412");
             }});
-            configuration.set("TeamYELLOW", new ArrayList<String>() {{
+            configuration.set("TeamBLUE", new ArrayList<String>() {{
+                //雪山 PM 左上
+                add("230,230");
+                add("1314,230");
+                add("1094,402");
+                add("1060,832");
+                add("888,1022");
+                add("230,910");
+            }});
+            configuration.set("TeamGRAY", new ArrayList<String>() {{
+                //丛林 BDS 右下
                 add("1460,1850");
                 add("1850,1850");
                 add("1850,1130");
@@ -64,6 +58,16 @@ public class ArenaSystem implements Listener {
                 add("1280,1178");
                 add("1182,1272");
                 add("1072,1272");
+            }});
+            configuration.set("TeamYELLOW", new ArrayList<String>() {{
+                //沙漠 Geyser 左下
+                add("230,930");
+                add("230,1850");
+                add("1260,1850");
+                add("1052,1272");
+                add("1012,1272");
+                add("900,1176");
+                add("880,1052");
             }});
             configuration.set("Center", 400);
         }
