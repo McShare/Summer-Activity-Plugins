@@ -3,7 +3,6 @@ package cc.venja.minebbs.battle.scores;
 import cc.venja.minebbs.battle.BattleMain;
 import org.bukkit.entity.Player;
 
-import java.util.Locale;
 
 public class PersonalScore {
     Player player;

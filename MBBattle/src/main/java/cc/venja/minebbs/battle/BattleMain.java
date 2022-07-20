@@ -1,12 +1,16 @@
 package cc.venja.minebbs.battle;
 
 import cc.venja.minebbs.battle.arena.ArenaSystem;
+import cc.venja.minebbs.battle.commands.GameStatusChange;
 import cc.venja.minebbs.battle.commands.GenerateStrongHoldCommand;
-import cc.venja.minebbs.battle.data.PlayerData;
-import cc.venja.minebbs.battle.scores.ScoreHandle;
+import cc.venja.minebbs.battle.enums.GameStatus;
+import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
+import cc.venja.minebbs.battle.scores.PlayerScoreHandle;
+import cc.venja.minebbs.battle.scores.TeamScoreHandle;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
@@ -22,6 +26,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,14 +55,18 @@ public class BattleMain extends JavaPlugin implements Listener {
     public static File personalScoreFile;
     public static YamlConfiguration personalScore;
 
-
     public Map<String, List<Player>> occupies = new HashMap<>();
 
     public ArenaSystem arenaSystem;
+    public List<TeamScoreHandle> teamScoreHandleList = new ArrayList<>();
+    public List<PlayerScoreHandle> playerScoreHandleList = new ArrayList<>();
+
+    public static GameStatus status;
 
     @Override
     public void onEnable() {
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
+        Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus-change")).setExecutor(new GameStatusChange());
 
         try {
             configFile = new File(this.getDataFolder().toPath().resolve("config.yml").toString()).getAbsoluteFile();
@@ -107,6 +116,13 @@ public class BattleMain extends JavaPlugin implements Listener {
             this.getServer().getPluginManager().registerEvents(this, this);
 
             arenaSystem = new ArenaSystem();
+
+            teamScoreHandleList.add(new TeamScoreHandle(Team.RED));
+            teamScoreHandleList.add(new TeamScoreHandle(Team.BLUE));
+            teamScoreHandleList.add(new TeamScoreHandle(Team.GREY));
+            teamScoreHandleList.add(new TeamScoreHandle(Team.YELLOW));
+
+            status = GameStatus.PEACETIME;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,7 +139,11 @@ public class BattleMain extends JavaPlugin implements Listener {
             Player pDamager = (Player) damager;
             Player pDamagee = (Player) damagee;
             if (event.getFinalDamage() >= pDamagee.getHealth()) {
-                ScoreHandle.onKillPlayer(pDamager);
+                for (PlayerScoreHandle scoreHandle: playerScoreHandleList) {
+                    if (pDamager.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
+                        scoreHandle.onKillPlayer();
+                    }
+                }
             }
         }
     }
@@ -278,7 +298,13 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        ScoreHandle.onPlayerDeath(event.getPlayer());
+        Player player = event.getPlayer();
+
+        for (PlayerScoreHandle scoreHandle: playerScoreHandleList) {
+            if (player.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
+                scoreHandle.onPlayerDeath();
+            }
+        }
     }
 
     @EventHandler
@@ -307,8 +333,58 @@ public class BattleMain extends JavaPlugin implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        try {
+            Player player = event.getPlayer();
+
+            playerScoreHandleList.add(new PlayerScoreHandle(player));
+
+            String name = player.getName();
+            Team team = RobotMain.getPlayerTeam(name);
+            player.displayName(Component.text(Team.getColorCode(team)+name));
+            this.getLogger().warning(name);
+        } catch (Exception e) {
+            this.getLogger().warning(e.toString());
+        }
+    }
+
+    public void onGameStatusChange(GameStatusChangeEvent event) {
+        if (event.beforeStatus.equals(GameStatus.OFF_DEF_DAY)) {
+            try {
+                List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
+
+                for (Map<?, ?> stronghold : strongholdList) {
+                    String strongholdId = stronghold.get("Id").toString();
+                    ConfigurationSection section = data.getConfigurationSection(strongholdId);
+
+                    if (section != null) {
+                        String occupyTeamString = section.getString("OccupyTeam");
+                        String ownerString = stronghold.get("OwnerTeam").toString();
+                        if (!Objects.equals(occupyTeamString, "") ||
+                                !Objects.equals(occupyTeamString, ownerString)) {
+                            Team occupier = Team.getByName(occupyTeamString);
+                            Team owner = Team.getByName(ownerString);
+
+                            for (TeamScoreHandle scoreHandle: teamScoreHandleList) {
+                                if (scoreHandle.getScore().getTeam().equals(owner)) {
+                                    scoreHandle.getScore().deduct(40);
+                                } else if (scoreHandle.getScore().getTeam().equals(occupier)) {
+                                    scoreHandle.getScore().add(50);
+                                }
+                            }
+                        }
+
+                    }
+                }
+            } catch (Exception e) {
+                this.getLogger().warning(e.toString());
+            }
+        }
+    }
     private void OccupyDetect() {
         Map<String, BossBar> bossBarMap = new HashMap<>();
+
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             Collection<? extends Player> online = Bukkit.getOnlinePlayers();
             List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
@@ -426,13 +502,14 @@ public class BattleMain extends JavaPlugin implements Listener {
                                             Team occupyTeamObj = Team.getByName(occupyTeam);
                                             String occupyTeamWithColor = Team.getColorCode(occupyTeamObj)+occupyTeam+"§r";
                                             occupied = String.format("已被 %s 占领", occupyTeamWithColor);
+
+                                            Team ownerTeamObj = Team.getByName(ownerTeam);
+                                            String ownerTeamWithColor = Team.getColorCode(ownerTeamObj)+ownerTeam+"§r";
+                                            occupyShow.setTitle(
+                                                    String.format("%s 所属队伍: %s %s",
+                                                            strongholdId, ownerTeamWithColor, occupied)
+                                            );
                                         }
-                                        Team ownerTeamObj = Team.getByName(ownerTeam);
-                                        String ownerTeamWithColor = Team.getColorCode(ownerTeamObj)+ownerTeam+"§r";
-                                        occupyShow.setTitle(
-                                                String.format("%s 所属队伍: %s %s",
-                                                        strongholdId, ownerTeamWithColor, occupied)
-                                        );
                                     }
                                 } else {
                                     if (occupyPercentage != 0.0) {

@@ -4,38 +4,42 @@ import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.login.enums.Team;
 
 public class TeamScore {
+    public Team getTeam() {
+        return team;
+    }
+
     Team team;
 
     public TeamScore(Team team) {
         this.team = team;
         try {
             if (!BattleMain.teamScore.contains(team.getName()))
-                initScore();
+                init();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void initScore() throws Exception {
+    private void init() throws Exception {
         BattleMain.teamScore.set(team.getName(), 0);
         saveScoreToFile();
     }
 
-    public int getScore() {
+    public int get() {
         return BattleMain.teamScore.getInt(team.getName());
     }
 
-    public void setScore(int score) throws Exception {
+    public void set(int score) throws Exception {
         BattleMain.teamScore.set(team.getName(), score);
         saveScoreToFile();
     }
 
-    public void addScore(int score) throws Exception {
-        this.setScore(BattleMain.teamScore.getInt(team.getName())+score);
+    public void add(int score) throws Exception {
+        this.set(BattleMain.teamScore.getInt(team.getName())+score);
     }
 
-    public void deductScore(int score) throws Exception {
-        this.setScore(BattleMain.teamScore.getInt(team.getName())-score);
+    public void deduct(int score) throws Exception {
+        this.set(BattleMain.teamScore.getInt(team.getName())-score);
     }
 
     private void saveScoreToFile() throws Exception {
