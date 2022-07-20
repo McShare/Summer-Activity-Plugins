@@ -1,6 +1,7 @@
 package cc.venja.minebbs.battle;
 
 import cc.venja.minebbs.battle.arena.ArenaSystem;
+import cc.venja.minebbs.battle.commands.ArenaManageCommand;
 import cc.venja.minebbs.battle.commands.GenerateStrongHoldCommand;
 import cc.venja.minebbs.battle.data.PlayerData;
 import cc.venja.minebbs.battle.scores.ScoreHandle;
@@ -58,6 +59,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
+        Objects.requireNonNull(this.getServer().getPluginCommand("arena")).setExecutor(new ArenaManageCommand());
 
         try {
             configFile = new File(this.getDataFolder().toPath().resolve("config.yml").toString()).getAbsoluteFile();

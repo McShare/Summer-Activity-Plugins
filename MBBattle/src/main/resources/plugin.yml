@@ -11,3 +11,5 @@ softdepend:
 commands:
   generate-stronghold:
     description: 手动生成指定据点
+  arena:
+    description: 墙控制
