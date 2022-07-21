@@ -5,19 +5,14 @@ import cc.venja.minebbs.battle.calculation.GFG;
 import cc.venja.minebbs.login.LoginMain;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
-import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
@@ -38,6 +33,8 @@ public class ArenaSystem implements Listener {
     public Map<Player, Location> playerLocationMap = new ConcurrentHashMap<>();
 
     public ArenaSystem() throws IOException {
+        instance = this;
+
         BattleMain.instance.getServer().getPluginManager().registerEvents(this, BattleMain.instance);
 
         configFile = new File(BattleMain.instance.getDataFolder().toPath().resolve("arena.yml").toString()).getAbsoluteFile();
