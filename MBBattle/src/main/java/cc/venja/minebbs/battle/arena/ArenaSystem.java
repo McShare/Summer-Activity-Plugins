@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ArenaSystem implements Listener {
+    public static ArenaSystem instance;
 
     public File configFile;
     public YamlConfiguration configuration;
