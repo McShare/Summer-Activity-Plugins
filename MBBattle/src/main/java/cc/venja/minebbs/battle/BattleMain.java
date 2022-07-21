@@ -113,7 +113,13 @@ public class BattleMain extends JavaPlugin implements Listener {
             configuration.save(configFile);
 
             dataFile = new File(this.getDataFolder().toPath().resolve("data.yml").toString()).getAbsoluteFile();
+            var dataExists = configFile.exists();
             data = YamlConfiguration.loadConfiguration(dataFile);
+            if (!dataExists) {
+                data.set("status", GameStatus.PEACETIME.getValue());
+                status = GameStatus.values()[data.getInt("status")];
+                data.save(dataFile);
+            }
 
             teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team.yml").toString()).getAbsoluteFile();
             teamScore = YamlConfiguration.loadConfiguration(teamScoreFile);
@@ -129,8 +135,6 @@ public class BattleMain extends JavaPlugin implements Listener {
             teamScoreHandleList.add(new TeamScoreHandle(Team.BLUE));
             teamScoreHandleList.add(new TeamScoreHandle(Team.GREY));
             teamScoreHandleList.add(new TeamScoreHandle(Team.YELLOW));
-
-            status = GameStatus.PEACETIME;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -403,10 +407,14 @@ public class BattleMain extends JavaPlugin implements Listener {
             } else if (event.beforeStatus.equals(GameStatus.BATTLE_DAY)) {
                 teleportAllPlayerToCorrTeamBase();
                 ArenaSystem.instance.configuration.set("EnablePortal", false);
+                ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
             } else if (event.nowStatus.equals(GameStatus.BATTLE_DAY)) {
                 teleportAllPlayerToCorrTeamBase();
                 ArenaSystem.instance.configuration.set("EnablePortal", true);
+                ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
             }
+            data.set("status", status.getValue());
+            data.save(dataFile);
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
@@ -437,7 +445,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     private void OccupyDetect() {
         Map<String, BossBar> bossBarMap = new HashMap<>();
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
             Collection<? extends Player> online = Bukkit.getOnlinePlayers();
             List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
 
@@ -491,6 +499,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 var occupyShow = bossBarMap.get(strongholdId);
 
                 for (Player player: online) {
+                    if (!player.getGameMode().equals(GameMode.SPECTATOR)) return;
                     Location location = player.getLocation();
 
                     if (location.getX() >= x - xRange && location.getX() <= x + xRange &&
@@ -587,16 +596,22 @@ public class BattleMain extends JavaPlugin implements Listener {
                                                     Audience audience = Audience.audience(player);
 
                                                     if (Objects.equals(playerTeam, ownerTeamObj)) {
-                                                        String title = String.format("我方据点 %s 已被 %s 占领！", strongholdId, occupiedTeam);
-                                                        audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                        String title = String.format("我方据点 %s", strongholdId);
+                                                        String teamName = Team.getColorCode(occupyTeamObj)+occupyTeamObj;
+                                                        String subtitle = String.format("已被 %s 占领！", teamName);
+                                                        audience.showTitle(Title.title(Component.text(title), Component.text(subtitle)));
                                                     } else if (Objects.equals(playerTeam, occupyTeamObj)) {
                                                         if (!ownerTeamObj.equals(Team.ADMIN)) {
-                                                            String title = String.format("我方以占领 %s 据点 %s！", ownerTeam, strongholdId);
-                                                            audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                            String teamName = Team.getColorCode(ownerTeamObj)+ownerTeam;
+                                                            String subtitle = String.format("%s 据点 %s！", teamName, strongholdId);
+                                                            audience.showTitle(Title.title(Component.text("我方以占领"), Component.text(subtitle)));
+                                                        } else {
+                                                            audience.showTitle(Title.title(Component.text("我方以占领中央据点！"), Component.text("")));
                                                         }
                                                     } else if (ownerTeamObj.equals(Team.ADMIN)) {
-                                                        String title = String.format("中央据点已被 %s 占领！", occupiedTeam);
-                                                        audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                        String teamName = Team.getColorCode(occupyTeamObj)+occupyTeamObj;
+                                                        String subtitle = String.format("已被 %s 占领！", teamName);
+                                                        audience.showTitle(Title.title(Component.text("中央据点"), Component.text(subtitle)));
                                                     }
                                                 }
                                             }

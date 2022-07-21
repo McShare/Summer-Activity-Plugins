@@ -177,7 +177,6 @@ public class ArenaSystem implements Listener {
                         Location location = playerLocationMap.get(event.getPlayer());
                         if (location != null) {
                             event.getPlayer().teleport(location.set(235.0, -60, 235.0));
-                            // Bukkit.getLogger().info(location.toString());
                         }
 
                         event.getPlayer().setVelocity(getVelocity((event.getTo().getX() - event.getFrom().getX()), (event.getTo().getZ() - event.getFrom().getZ()), 0.4));
@@ -213,7 +212,6 @@ public class ArenaSystem implements Listener {
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
         if (!configuration.getBoolean("EnablePortal")){
-            Audience.audience(event).sendActionBar(Component.text("§6传送门暂未启用哟"));
             return;
         }
 
