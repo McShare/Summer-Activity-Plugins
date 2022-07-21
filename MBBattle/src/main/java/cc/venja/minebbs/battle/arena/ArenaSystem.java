@@ -10,6 +10,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -26,6 +27,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.bukkit.Sound.BLOCK_END_PORTAL_SPAWN;
 
 public class ArenaSystem implements Listener {
 
@@ -87,39 +90,14 @@ public class ArenaSystem implements Listener {
             configuration.set("EnableTeamYELLOW", true);
 
             configuration.set("EnablePortal", true);
-            configuration.set("TeamREDPortal", new ArrayList<String>() {{
-                //平原 NK 右上
-                add("1848,330");
-                add("1848,336");
-            }});
-            configuration.set("TeamREDPortalEnd", "1103,72,918");
-            configuration.set("TeamBLUEPortal", new ArrayList<String>() {{
-                //雪山 PM 左上
-                add("374,328");
-                add("374,334");
-            }});
-            configuration.set("TeamBLUEPortalEnd", "913,76,1108");
-            configuration.set("TeamGREYPortal", new ArrayList<String>() {{
-                //丛林 BDS 右下
-                add("1730,1707");
-                add("1730,1713");
-            }});
-            configuration.set("TeamGREYPortalEnd", "1293,89,1108");
-            configuration.set("TeamYELLOWPortal", new ArrayList<String>() {{
-                //沙漠 Geyser 左下
-                add("294,1577");
-                add("294,1581");
-            }});
-            configuration.set("TeamYELLOWPortalEnd", "1103,108,1298");
 
             configuration.set("Assembling", false);
             configuration.set("TeamREDAssemblePoint", "");
-            configuration.set("TeamBLUEAssemblePoint", "");
+            configuration.set("TeamREDAssemblePoint", "");
             configuration.set("TeamGREYAssemblePoint", "");
             configuration.set("TeamYELLOWAssemblePoint", "");
-
-            configuration.set("CenterPos", "1040,1040");
-            configuration.set("CenterRadius", 400);
+            configuration.set("CenterPos", "1103,1108");
+            configuration.set("CenterRadius", 200);
             configuration.set("CenterAccess", false);
             configuration.set("CenterEnable", false);
         }
@@ -236,7 +214,43 @@ public class ArenaSystem implements Listener {
     }
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
-        Location loc = event.getLocation();
+        if (!configuration.getBoolean("EnablePortal")){
+            return;
+        }
+
+        Location loc = event.getLocation();//TeamRED TeamBLUE TeamGREY TeamYELLOW
+        int x = (int) loc.getX();
+        int z = (int) loc.getZ();
+
+        if (Objects.equals(TeamStr, "TeamRED")){
+            if (x == 1848 && Math.max(330,z) == Math.min(z,336)) {
+                event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
+                event.teleport(new Location(event.getWorld(), 1103,73,918));
+                return;
+            }
+            }
+        if (Objects.equals(TeamStr, "TeamBLUE")){
+            if (x == 374 && Math.max(328,z) == Math.min(z,334)) {
+                event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
+                event.teleport(new Location(event.getWorld(), 913,77,1108));
+                return;
+            }
+        }
+        if (Objects.equals(TeamStr, "TeamGREY")){
+            if (x == 1730 && Math.max(1707,z) == Math.min(z,1713)) {
+                event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
+                event.teleport(new Location(event.getWorld(), 1293,90,1108));
+                return;
+            }
+        }
+        if (Objects.equals(TeamStr, "TeamYELLOW")){
+            if (x == 294 && Math.max(1577,z) == Math.min(z,1581)) {
+                event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
+                event.teleport(new Location(event.getWorld(), 1103,109,1298));
+            }
+        }
+   }
+
         List<String> scope = configuration.getStringList(TeamStr + "Portal");// 对应队伍传送门范围
         List<Vector> scopePoint = new ArrayList<>();
         for (String str : scope) {
