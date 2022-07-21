@@ -240,6 +240,8 @@ public class BattleMain extends JavaPlugin implements Listener {
         });
 
         OccupyDetect();
+
+        middleCollectPointDetect();
     }
 
     @EventHandler
@@ -364,10 +366,14 @@ public class BattleMain extends JavaPlugin implements Listener {
                     if (section != null) {
                         String occupyTeamString = section.getString("OccupyTeam");
                         String ownerString = stronghold.get("OwnerTeam").toString();
+
+                        Team occupier = Team.getByName(occupyTeamString);
+                        Team owner = Team.getByName(ownerString);
+
+                        if (owner.equals(Team.ADMIN)) return;
+
                         if (!Objects.equals(occupyTeamString, "") ||
                                 !Objects.equals(occupyTeamString, ownerString)) {
-                            Team occupier = Team.getByName(occupyTeamString);
-                            Team owner = Team.getByName(ownerString);
 
                             for (TeamScoreHandle scoreHandle: teamScoreHandleList) {
                                 if (scoreHandle.getScore().getTeam().equals(owner)) {
@@ -570,6 +576,36 @@ public class BattleMain extends JavaPlugin implements Listener {
                 }
             }
         }, 0, 20);
+    }
+
+    private void middleCollectPointDetect() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            try {
+                List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
+                for (Map<?, ?> stronghold : strongholdList) {
+                    String ownerString = stronghold.get("OwnerTeam").toString();
+                    Team owner = Team.getByName(ownerString);
+
+                    if (owner.equals(Team.ADMIN)) {
+                        String strongholdId = stronghold.get("Id").toString();
+                        ConfigurationSection section = data.getConfigurationSection(strongholdId);
+
+                        if (section != null) {
+                            String occupyTeamString = section.getString("OccupyTeam");
+                            Team occupier = Team.getByName(occupyTeamString);
+
+                            for (TeamScoreHandle scoreHandle: teamScoreHandleList) {
+                                if (scoreHandle.getScore().getTeam().equals(occupier)) {
+                                    scoreHandle.getScore().add(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                this.getLogger().warning(e.toString());
+            }
+        }, 0, 20*60);
     }
 
     private boolean protectAreaOfStrongHold(Block block) {
