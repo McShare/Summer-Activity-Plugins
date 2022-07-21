@@ -216,6 +216,7 @@ public class ArenaSystem implements Listener {
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
         if (!configuration.getBoolean("EnablePortal")){
+            Audience.audience(event).sendActionBar(Component.text("§6传送门还没启用哟"));
             return;
         }
 
@@ -251,22 +252,6 @@ public class ArenaSystem implements Listener {
             }
         }
    }
-
-        List<String> scope = configuration.getStringList(TeamStr + "Portal");// 对应队伍传送门范围
-        List<Vector> scopePoint = new ArrayList<>();
-        for (String str : scope) {
-            scopePoint.add(strToVector(str));
-        }
-
-        if (scopePoint.get(0).getX() == loc.getX() && Math.max(scopePoint.get(0).getY(), loc.getZ()) == Math.min(loc.getZ(), scopePoint.get(1).getY())) {
-            //在区域内
-            String end = configuration.getString(TeamStr + "PortalEnd");
-            assert end != null;
-            Vector endPoint = new Vector(Integer.parseInt(end.split(",")[0]), Integer.parseInt(end.split(",")[1]), Integer.parseInt(end.split(",")[2]));
-            Location newLocation = new Location(event.getWorld(), endPoint.getX(), endPoint.getY(), endPoint.getZ());
-            event.teleport(newLocation);
-        }
-    }
 
     public void syncPlayerLocation() throws SQLException {
         for (Player player : BattleMain.instance.getServer().getOnlinePlayers()) {
