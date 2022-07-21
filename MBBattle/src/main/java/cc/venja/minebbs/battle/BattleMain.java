@@ -115,9 +115,9 @@ public class BattleMain extends JavaPlugin implements Listener {
             dataFile = new File(this.getDataFolder().toPath().resolve("data.yml").toString()).getAbsoluteFile();
             var dataExists = configFile.exists();
             data = YamlConfiguration.loadConfiguration(dataFile);
+            status = GameStatus.values()[data.getInt("status")];
             if (!dataExists) {
                 data.set("status", GameStatus.PEACETIME.getValue());
-                status = GameStatus.values()[data.getInt("status")];
                 data.save(dataFile);
             }
 
@@ -357,7 +357,6 @@ public class BattleMain extends JavaPlugin implements Listener {
             String name = player.getName();
             Team team = RobotMain.getPlayerTeam(name);
             player.displayName(Component.text(Team.getColorCode(Objects.requireNonNull(team))+name));
-            this.getLogger().warning(name);
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
@@ -365,6 +364,9 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public void onGameStatusChange(GameStatusChangeEvent event) {
         try {
+            data.set("status", event.nowStatus.getValue());
+            data.save(dataFile);
+
             String title = String.format("§4%s 已结束！", event.beforeStatus.getName());
             String subtitle = String.format("§2当前为 %s", event.nowStatus.getName());
             for (Player player: Bukkit.getOnlinePlayers()) {
@@ -386,20 +388,19 @@ public class BattleMain extends JavaPlugin implements Listener {
                         Team occupier = Team.getByName(occupyTeamString);
                         Team owner = Team.getByName(ownerString);
 
-                        if (owner.equals(Team.ADMIN)) return;
+                        if (!owner.equals(Team.ADMIN)) {
+                            if (!Objects.equals(occupyTeamString, "") ||
+                                    !Objects.equals(occupyTeamString, ownerString)) {
 
-                        if (!Objects.equals(occupyTeamString, "") ||
-                                !Objects.equals(occupyTeamString, ownerString)) {
-
-                            for (TeamScoreHandle scoreHandle: teamScoreHandleList) {
-                                if (scoreHandle.getScore().getTeam().equals(owner)) {
-                                    scoreHandle.getScore().deduct(40);
-                                } else if (scoreHandle.getScore().getTeam().equals(occupier)) {
-                                    scoreHandle.getScore().add(50);
+                                for (TeamScoreHandle scoreHandle: teamScoreHandleList) {
+                                    if (scoreHandle.getScore().getTeam().equals(owner)) {
+                                        scoreHandle.getScore().deduct(40);
+                                    } else if (scoreHandle.getScore().getTeam().equals(occupier)) {
+                                        scoreHandle.getScore().add(50);
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
 
@@ -413,8 +414,6 @@ public class BattleMain extends JavaPlugin implements Listener {
                 ArenaSystem.instance.configuration.set("EnablePortal", true);
                 ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
             }
-            data.set("status", status.getValue());
-            data.save(dataFile);
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
@@ -499,31 +498,32 @@ public class BattleMain extends JavaPlugin implements Listener {
                 var occupyShow = bossBarMap.get(strongholdId);
 
                 for (Player player: online) {
-                    if (!player.getGameMode().equals(GameMode.SPECTATOR)) return;
-                    Location location = player.getLocation();
+                    if (!player.getGameMode().equals(GameMode.SPECTATOR)) {
+                        Location location = player.getLocation();
 
-                    if (location.getX() >= x - xRange && location.getX() <= x + xRange &&
-                            location.getY() >= y - yRange && location.getY() <= y + yRange &&
-                            location.getZ() >= z - zRange && location.getZ() <= z + zRange) {
-                        if (occupies.containsKey(strongholdId)) {
-                            boolean hasPlayer = false;
-                            for (Player player1 : occupyPlayers) {
-                                if (player1.getName().equals(player.getName())) {
-                                    hasPlayer = true;
+                        if (location.getX() >= x - xRange && location.getX() <= x + xRange &&
+                                location.getY() >= y - yRange && location.getY() <= y + yRange &&
+                                location.getZ() >= z - zRange && location.getZ() <= z + zRange) {
+                            if (occupies.containsKey(strongholdId)) {
+                                boolean hasPlayer = false;
+                                for (Player player1 : occupyPlayers) {
+                                    if (player1.getName().equals(player.getName())) {
+                                        hasPlayer = true;
+                                    }
+                                }
+                                if (!hasPlayer) {
+                                    occupyShow.addPlayer(player);
+                                    occupyPlayers.add(player);
                                 }
                             }
-                            if (!hasPlayer) {
-                                occupyShow.addPlayer(player);
-                                occupyPlayers.add(player);
-                            }
-                        }
-                    } else {
-                        for (int i = 0; i < occupyPlayers.size(); i++) {
-                            Player player1 = occupyPlayers.get(i);
-                            if (player1.getName().equals(player.getName())) {
-                                occupyShow.removePlayer(player);
-                                occupyPlayers.remove(i);
-                                i -= 1;
+                        } else {
+                            for (int i = 0; i < occupyPlayers.size(); i++) {
+                                Player player1 = occupyPlayers.get(i);
+                                if (player1.getName().equals(player.getName())) {
+                                    occupyShow.removePlayer(player);
+                                    occupyPlayers.remove(i);
+                                    i -= 1;
+                                }
                             }
                         }
                     }
@@ -550,12 +550,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                                 String occupiedTeam = section.getString("OccupyTeam");
 
-                                if (!Objects.equals(occupyTeam, occupiedTeam)) {
+                                if (!Objects.equals(occupyTeam, occupiedTeam) && !Objects.equals(occupyTeam, ownerTeam)) {
                                     occupyPercentage = 0.0;
                                 }
+                                Block glass = world.getBlockAt(x, y, z);
 
                                 if (!ownerTeam.equals(occupyTeam)) {
-                                    Block glass = world.getBlockAt(x, y, z);
 
                                     if (occupyPercentage < 1.0) {
                                         section.set("OccupyTeam", occupyTeam);
@@ -618,8 +618,12 @@ public class BattleMain extends JavaPlugin implements Listener {
                                         }
                                     }
                                 } else {
-                                    if (occupyPercentage != 0.0) {
+                                    if (occupyPercentage > 0.0) {
                                         occupyPercentage -= 1.0/occupyTime;
+                                    }
+
+                                    if (occupyPercentage < 0) {
+                                        occupyPercentage = 0;
                                     }
                                     Team ownerTeamObj = Team.getByName(ownerTeam);
 
@@ -634,6 +638,18 @@ public class BattleMain extends JavaPlugin implements Listener {
                                                 if (Objects.equals(playerTeam, ownerTeamObj)) {
                                                     String title = String.format("我方据点 %s 已被收回", strongholdId);
                                                     audience.showTitle(Title.title(Component.text(title), Component.text("")));
+
+                                                    Material glassMaterial = switch (ownerTeam) {
+                                                        case "TeamRED" -> Material.RED_STAINED_GLASS;
+                                                        case "TeamBLUE" -> Material.BLUE_STAINED_GLASS;
+                                                        case "TeamGREY" -> Material.GRAY_STAINED_GLASS;
+                                                        case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
+                                                        default -> Material.GLASS;
+                                                    };
+
+                                                    if (!glass.getType().equals(glassMaterial)) {
+                                                        glass.setType(glassMaterial);
+                                                    }
                                                 }
                                             }
                                         }
