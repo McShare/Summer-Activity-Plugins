@@ -90,7 +90,7 @@ public class ArenaSystem implements Listener {
             }});
             configuration.set("EnableTeamYELLOW", true);
 
-            configuration.set("EnablePortal", true);
+            configuration.set("EnablePortal", false);
 
             configuration.set("Assembling", false);
             configuration.set("TeamREDAssemblePoint", "");
@@ -165,12 +165,12 @@ public class ArenaSystem implements Listener {
         if (LoginMain.instance.onlinePlayers.get(event.getPlayer()) == LoginMain.Status.LOGIN) {
             Team team = RobotMain.getPlayerTeam(event.getPlayer().getName());
             String teamStr = Objects.requireNonNull(team).getName();
+            isPlayerEnterPortal(teamStr, event.getPlayer());
             List<String> vectorStr = configuration.getStringList(teamStr);
             List<Vector> vectors = new ArrayList<>();
             for (String str : vectorStr) {
                 vectors.add(strToVector(str));
             }
-            // Bukkit.getLogger().info(event.getTo().toString());
             Vector to = new Vector(event.getTo().getX(), event.getTo().getZ(), 0);
 
             Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
@@ -204,7 +204,7 @@ public class ArenaSystem implements Listener {
                     }
                 }
             }
-            isPlayerEnterPortal(teamStr, event.getPlayer());
+
         }
     }
 
@@ -216,11 +216,11 @@ public class ArenaSystem implements Listener {
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
         if (!configuration.getBoolean("EnablePortal")){
-            Audience.audience(event).sendActionBar(Component.text("§6传送门还没启用哟"));
+            Audience.audience(event).sendActionBar(Component.text("§6传送门暂未启用哟"));
             return;
         }
 
-        Location loc = event.getLocation();//TeamRED TeamBLUE TeamGREY TeamYELLOW
+        Location loc = event.getLocation();
         int x = (int) loc.getX();
         int z = (int) loc.getZ();
 
