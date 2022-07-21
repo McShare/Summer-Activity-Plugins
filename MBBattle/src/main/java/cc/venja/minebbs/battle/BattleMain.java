@@ -392,12 +392,10 @@ public class BattleMain extends JavaPlugin implements Listener {
                 teleportAllPlayerToCorrTeamBase();
             } else if (event.beforeStatus.equals(GameStatus.BATTLE_DAY)) {
                 teleportAllPlayerToCorrTeamBase();
-                // TODO
-                // 关闭传送通道
+                ArenaSystem.instance.configuration.set("EnablePortal", false);
             } else if (event.nowStatus.equals(GameStatus.BATTLE_DAY)) {
                 teleportAllPlayerToCorrTeamBase();
-                // TODO
-                // 开启传送通道
+                ArenaSystem.instance.configuration.set("EnablePortal", true);
             }
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
@@ -473,10 +471,11 @@ public class BattleMain extends JavaPlugin implements Listener {
                             put(Team.BLUE, BarColor.BLUE);
                             put(Team.GREY, BarColor.WHITE);
                             put(Team.YELLOW, BarColor.YELLOW);
+                            put(Team.ADMIN, BarColor.GREEN);
                         }
                     };
                     var occupyShow = Bukkit.createBossBar(bossBarTitle,
-                            TeamColorRefer.get(Team.getByName(ownerTeam)), BarStyle.SOLID, BarFlag.CREATE_FOG);
+                            TeamColorRefer.get(team), BarStyle.SOLID, BarFlag.CREATE_FOG);
                     bossBarMap.put(strongholdId, occupyShow);
                 }
                 var occupyShow = bossBarMap.get(strongholdId);
@@ -539,16 +538,6 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 if (!ownerTeam.equals(occupyTeam)) {
                                     Block glass = world.getBlockAt(x, y, z);
 
-                                    Material glassMaterial = switch (ownerTeam) {
-                                        case "TeamRED" -> Material.RED_STAINED_GLASS;
-                                        case "TeamBLUE" -> Material.BLUE_STAINED_GLASS;
-                                        case "TeamGREY" -> Material.GRAY_STAINED_GLASS;
-                                        case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
-                                        default -> Material.GLASS;
-                                    };
-
-                                    glass.setType(glassMaterial);
-
                                     if (occupyPercentage < 1.0) {
                                         section.set("OccupyTeam", occupyTeam);
                                         occupyPercentage += 1.0/occupyTime;
@@ -562,25 +551,26 @@ public class BattleMain extends JavaPlugin implements Listener {
                                         String occupied;
                                         if (!Objects.equals(occupyTeam, "")) {
                                             Team occupyTeamObj = Team.getByName(occupyTeam);
-                                            String occupyTeamWithColor = Team.getColorCode(occupyTeamObj)+occupyTeam+"§r";
+                                            String occupyTeamWithColor = Team.getColorCode(occupyTeamObj) + occupyTeam + "§r";
                                             occupied = String.format("已被 %s 占领", occupyTeamWithColor);
 
                                             Team ownerTeamObj = Team.getByName(ownerTeam);
-                                            String ownerTeamWithColor = Team.getColorCode(ownerTeamObj)+ownerTeam+"§r";
+                                            String ownerTeamWithColor = Team.getColorCode(ownerTeamObj) + ownerTeam + "§r";
                                             occupyShow.setTitle(
                                                     String.format("%s 所属队伍: %s %s",
                                                             strongholdId, ownerTeamWithColor, occupied)
                                             );
 
-                                            glassMaterial = switch (occupyTeam) {
+                                            Material glassMaterial = switch (occupyTeam) {
                                                 case "TeamRED" -> Material.RED_STAINED_GLASS;
                                                 case "TeamBLUE" -> Material.BLUE_STAINED_GLASS;
                                                 case "TeamGREY" -> Material.GRAY_STAINED_GLASS;
                                                 case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
                                                 default -> Material.GLASS;
                                             };
-
-                                            glass.setType(glassMaterial);
+                                            if (!glass.getType().equals(glassMaterial)) {
+                                                glass.setType(glassMaterial);
+                                            }
                                         }
                                     }
                                 } else {

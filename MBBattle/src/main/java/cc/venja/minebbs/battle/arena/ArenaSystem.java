@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.bukkit.Sound.BLOCK_END_PORTAL_SPAWN;
 
 public class ArenaSystem implements Listener {
+    public static ArenaSystem instance;
 
     public File configFile;
     public YamlConfiguration configuration;
