@@ -64,6 +64,8 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public static GameStatus status;
 
+    public World world;
+
     @Override
     public void onEnable() {
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
@@ -184,7 +186,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             return;
         }
 
-        World world = Bukkit.getWorld("world");
+        world = Bukkit.getWorld("world");
 
         strongholdList.forEach(map -> {
             if (world == null) return;
@@ -535,6 +537,18 @@ public class BattleMain extends JavaPlugin implements Listener {
                                 }
 
                                 if (!ownerTeam.equals(occupyTeam)) {
+                                    Block glass = world.getBlockAt(x, y, z);
+
+                                    Material glassMaterial = switch (ownerTeam) {
+                                        case "TeamRED" -> Material.RED_STAINED_GLASS;
+                                        case "TeamBLUE" -> Material.BLUE_STAINED_GLASS;
+                                        case "TeamGREY" -> Material.GRAY_STAINED_GLASS;
+                                        case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
+                                        default -> Material.GLASS;
+                                    };
+
+                                    glass.setType(glassMaterial);
+
                                     if (occupyPercentage < 1.0) {
                                         section.set("OccupyTeam", occupyTeam);
                                         occupyPercentage += 1.0/occupyTime;
@@ -557,6 +571,16 @@ public class BattleMain extends JavaPlugin implements Listener {
                                                     String.format("%s 所属队伍: %s %s",
                                                             strongholdId, ownerTeamWithColor, occupied)
                                             );
+
+                                            glassMaterial = switch (occupyTeam) {
+                                                case "TeamRED" -> Material.RED_STAINED_GLASS;
+                                                case "TeamBLUE" -> Material.BLUE_STAINED_GLASS;
+                                                case "TeamGREY" -> Material.GRAY_STAINED_GLASS;
+                                                case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
+                                                default -> Material.GLASS;
+                                            };
+
+                                            glass.setType(glassMaterial);
                                         }
                                     }
                                 } else {
