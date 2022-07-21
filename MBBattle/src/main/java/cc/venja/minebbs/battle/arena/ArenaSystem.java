@@ -216,7 +216,6 @@ public class ArenaSystem implements Listener {
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
         if (!configuration.getBoolean("EnablePortal")){
-            Audience.audience(event).sendActionBar(Component.text("§6传送门暂未启用哟"));
             return;
         }
 
