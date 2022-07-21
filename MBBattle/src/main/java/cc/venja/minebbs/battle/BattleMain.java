@@ -3,6 +3,7 @@ package cc.venja.minebbs.battle;
 import cc.venja.minebbs.battle.arena.ArenaSystem;
 import cc.venja.minebbs.battle.commands.GameStatusChange;
 import cc.venja.minebbs.battle.commands.ArenaManageCommand;
+import cc.venja.minebbs.battle.commands.GameStatusGet;
 import cc.venja.minebbs.battle.commands.GenerateStrongHoldCommand;
 import cc.venja.minebbs.battle.enums.GameStatus;
 import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
@@ -11,7 +12,9 @@ import cc.venja.minebbs.battle.scores.TeamScoreHandle;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
@@ -70,6 +73,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     public void onEnable() {
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
         Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus-change")).setExecutor(new GameStatusChange());
+        Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus")).setExecutor(new GameStatusGet());
         Objects.requireNonNull(this.getServer().getPluginCommand("arena")).setExecutor(new ArenaManageCommand());
 
         try {
@@ -357,6 +361,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public void onGameStatusChange(GameStatusChangeEvent event) {
         try {
+            String title = String.format("§4%s 已结束！", event.beforeStatus.getName());
+            String subtitle = String.format("§2当前为 %s", event.nowStatus.getName());
+            for (Player player: Bukkit.getOnlinePlayers()) {
+                Audience.audience(player).showTitle(Title.title(Component.text(title), Component.text(subtitle)));
+            }
+
             if (event.beforeStatus.equals(GameStatus.OFF_DEF_DAY)) {
 
                 List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
@@ -570,13 +580,48 @@ public class BattleMain extends JavaPlugin implements Listener {
                                             };
                                             if (!glass.getType().equals(glassMaterial)) {
                                                 glass.setType(glassMaterial);
+
+                                                for (Player player: Bukkit.getOnlinePlayers()) {
+                                                    String name = player.getName();
+                                                    Team playerTeam = RobotMain.getPlayerTeam(name);
+                                                    Audience audience = Audience.audience(player);
+
+                                                    if (Objects.equals(playerTeam, ownerTeamObj)) {
+                                                        String title = String.format("我方据点 %s 已被 %s 占领！", strongholdId, occupiedTeam);
+                                                        audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                    } else if (Objects.equals(playerTeam, occupyTeamObj)) {
+                                                        if (!ownerTeamObj.equals(Team.ADMIN)) {
+                                                            String title = String.format("我方以占领 %s 据点 %s！", ownerTeam, strongholdId);
+                                                            audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                        }
+                                                    } else if (ownerTeamObj.equals(Team.ADMIN)) {
+                                                        String title = String.format("中央据点已被 %s 占领！", occupiedTeam);
+                                                        audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 } else {
                                     if (occupyPercentage != 0.0) {
-                                        section.set("OccupyTeam", "");
                                         occupyPercentage -= 1.0/occupyTime;
+                                    }
+                                    Team ownerTeamObj = Team.getByName(ownerTeam);
+
+                                    if (occupyPercentage == 0.0) {
+                                        if (!section.getString("OccupyTeam").equals("")) {
+                                            section.set("OccupyTeam", "");
+                                            for (Player player: Bukkit.getOnlinePlayers()) {
+                                                String name = player.getName();
+                                                Team playerTeam = RobotMain.getPlayerTeam(name);
+                                                Audience audience = Audience.audience(player);
+
+                                                if (Objects.equals(playerTeam, ownerTeamObj)) {
+                                                    String title = String.format("我方据点 %s 已被收回", strongholdId);
+                                                    audience.showTitle(Title.title(Component.text(title), Component.text("")));
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 occupyShow.setProgress(occupyPercentage);

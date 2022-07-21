@@ -13,5 +13,7 @@ commands:
     description: 手动生成指定据点
   gamestatus-change:
     description: 修改游戏状态
+  gamestatus:
+    description: 获取游戏时期
   arena:
     description: 墙控制
