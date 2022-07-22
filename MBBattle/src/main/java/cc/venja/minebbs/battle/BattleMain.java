@@ -9,6 +9,7 @@ import cc.venja.minebbs.battle.enums.GameStatus;
 import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
 import cc.venja.minebbs.battle.scores.PlayerScoreHandle;
 import cc.venja.minebbs.battle.scores.TeamScoreHandle;
+import cc.venja.minebbs.battle.scores.showScores;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
@@ -360,6 +361,7 @@ public class BattleMain extends JavaPlugin implements Listener {
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
+        showScores.UpdateScoreboard();
     }
 
     public void onGameStatusChange(GameStatusChangeEvent event) {
