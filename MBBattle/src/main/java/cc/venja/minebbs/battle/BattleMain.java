@@ -60,6 +60,9 @@ public class BattleMain extends JavaPlugin implements Listener {
     public static File personalScoreFile;
     public static YamlConfiguration personalScore;
 
+    public static File joinRecordFile;
+    public static YamlConfiguration joinRecord;
+
     public Map<String, List<Player>> occupies = new HashMap<>();
 
     public ArenaSystem arenaSystem;
@@ -127,6 +130,9 @@ public class BattleMain extends JavaPlugin implements Listener {
 
             personalScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal.yml").toString()).getAbsoluteFile();
             personalScore = YamlConfiguration.loadConfiguration(personalScoreFile);
+
+            joinRecordFile = new File(this.getDataFolder().toPath().resolve("record.yml").toString()).getAbsoluteFile();
+            joinRecord = YamlConfiguration.loadConfiguration(joinRecordFile);
 
             this.getServer().getPluginManager().registerEvents(this, this);
 
@@ -355,13 +361,20 @@ public class BattleMain extends JavaPlugin implements Listener {
 
             playerScoreHandleList.add(new PlayerScoreHandle(player));
 
-            String name = player.getName();
+            String name = RobotMain.getRealPlayerName(player.getName());
             Team team = RobotMain.getPlayerTeam(name);
+
+            if (!joinRecord.contains(name.toLowerCase())) {
+                joinRecord.set(name.toLowerCase(), true);
+                joinRecord.save(joinRecordFile);
+                teleportPlayerToTeamBase(player);
+            }
+
             player.displayName(Component.text(Team.getColorCode(Objects.requireNonNull(team))+name));
+            showScores.UpdateScoreboard();
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
-        showScores.UpdateScoreboard();
     }
 
     public void onGameStatusChange(GameStatusChangeEvent event) {

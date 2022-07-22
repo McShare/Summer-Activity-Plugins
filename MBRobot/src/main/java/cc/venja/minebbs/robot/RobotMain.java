@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -172,6 +173,7 @@ public class RobotMain extends JavaPlugin implements Listener {
     public static Map<Team, List<String>> teamListMap = new ConcurrentHashMap<>();
 
     public static void addPlayerTeam(String player, int team, String khl) throws SQLException {
+        player = getRealPlayerName(player);
         updatePlayer(player, team, khl);
 
         List<String> players = teamListMap.get(Team.getByValue(team));
@@ -180,6 +182,7 @@ public class RobotMain extends JavaPlugin implements Listener {
     }
 
     public static void removePlayerTeam(String player) throws SQLException {
+        player = getRealPlayerName(player);
         Team team = getPlayerTeam(player);
         updatePlayer(player, -1);
 
@@ -189,10 +192,12 @@ public class RobotMain extends JavaPlugin implements Listener {
     }
 
     private static void updatePlayer(String player, int team) throws SQLException {
+        player = getRealPlayerName(player);
         updatePlayer(player, team, "");
     }
 
     private static void updatePlayer(String player, int team, String khl) throws SQLException {
+        player = getRealPlayerName(player);
         PlayerInfoDao dao = new PlayerInfoDao();
         PlayerInfo playerInfo = dao.getPlayerByName(player);
         if (playerInfo == null) {
@@ -207,6 +212,7 @@ public class RobotMain extends JavaPlugin implements Listener {
     }
 
     public static boolean existsPlayerTeam(String player) throws SQLException {
+        player = getRealPlayerName(player);
         PlayerInfoDao dao = new PlayerInfoDao();
         PlayerInfo playerInfo = dao.getPlayerByName(player);
         if (playerInfo == null) {
@@ -217,6 +223,7 @@ public class RobotMain extends JavaPlugin implements Listener {
 
     @Nullable
     public static Team getPlayerTeam(String player) throws SQLException {
+        player = getRealPlayerName(player);
         PlayerInfoDao dao = new PlayerInfoDao();
         PlayerInfo playerInfo = dao.getPlayerByName(player);
         if (playerInfo == null) {
@@ -226,6 +233,17 @@ public class RobotMain extends JavaPlugin implements Listener {
             return null;
         }
         return Team.getByValue(playerInfo.getTeam());
+    }
+
+    public static String getRealPlayerName(String player) {
+        Player exactPlayer = instance.getServer().getPlayerExact(player);
+        if (exactPlayer != null) {
+            var floodgatePlayer = FloodgateApi.getInstance().getPlayer(exactPlayer.getUniqueId());
+            if (floodgatePlayer != null) {
+                return floodgatePlayer.getUsername();
+            }
+        }
+        return player;
     }
 
     public static Team getLowestMemberTeam() {

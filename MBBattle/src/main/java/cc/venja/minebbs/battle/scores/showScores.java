@@ -11,6 +11,7 @@ import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -19,7 +20,7 @@ public class showScores {
     private static final Scoreboard scoreboard = manager.getNewScoreboard(); // 新建计分板
     private static Objective Board;
 
-    public static void UpdateScoreboard() {
+    public static void UpdateScoreboard() throws SQLException {
         if (Board != null) {
             Board.unregister();
         } else {
@@ -70,7 +71,7 @@ public class showScores {
         }
     }
 
-    public static String PlayerName2TeamColor(String PlayerName){ //玩家名转颜色
+    public static String PlayerName2TeamColor(String PlayerName) throws SQLException { //玩家名转颜色
         Team team = RobotMain.getPlayerTeam(PlayerName);
         String teamStr = Objects.requireNonNull(team).getName();
         return TeamName2TeamColor(teamStr);
