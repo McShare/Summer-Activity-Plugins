@@ -30,7 +30,6 @@ public class ArenaSystem implements Listener {
 
     public File configFile;
     public YamlConfiguration configuration;
-    public Map<Player, Location> playerLocationMap = new ConcurrentHashMap<>();
 
     public ArenaSystem() throws IOException {
         instance = this;
@@ -101,17 +100,6 @@ public class ArenaSystem implements Listener {
         }
 
         configuration.save(configFile);
-
-        (new Timer()).schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    syncPlayerLocation();
-                } catch (SQLException exception) {
-                    BattleMain.instance.getLogger().info(exception.toString());
-                }
-            }
-        }, 0, 1000);
     }
 
     @EventHandler
@@ -174,12 +162,6 @@ public class ArenaSystem implements Listener {
             if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
                 if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
                     if (!event.getPlayer().isOp()) {
-                        Location location = playerLocationMap.get(event.getPlayer());
-                        if (location != null) {
-                            event.getPlayer().teleport(location.set(235.0, -60, 235.0));
-                        }
-
-                        event.getPlayer().setVelocity(getVelocity((event.getTo().getX() - event.getFrom().getX()), (event.getTo().getZ() - event.getFrom().getZ()), 0.4));
                         event.setCancelled(true);
                         Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
                     }
@@ -191,23 +173,12 @@ public class ArenaSystem implements Listener {
                 if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
                     if (!event.getPlayer().isOp()) {
                         event.setCancelled(true);
-                        Location location = playerLocationMap.get(event.getPlayer());
-                        if (location != null) {
-                            event.getPlayer().teleport(location);
-                            // Bukkit.getLogger().info(location.toString());
-                        }
                         Audience.audience(event.getPlayer()).sendActionBar(Component.text("§c不可逾越允许活动范围"));
                     }
                 }
             }
 
         }
-    }
-
-    private Vector getVelocity(double x, double z, double speed) {
-        double y = 0.3333;
-        double multiplier = Math.sqrt((speed*speed) / (x*x + y*y + z*z));
-        return new Vector(x, y, z).multiply(multiplier).setY(y);
     }
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
@@ -247,38 +218,6 @@ public class ArenaSystem implements Listener {
             }
         }
    }
-
-    public void syncPlayerLocation() throws SQLException {
-        for (Player player : BattleMain.instance.getServer().getOnlinePlayers()) {
-            Team team = RobotMain.getPlayerTeam(player.getName());
-            String teamStr = Objects.requireNonNull(team).getName();
-            String enable = "Enable" + teamStr;
-            if (configuration.getBoolean(enable)) {
-                List<String> vectorStr = configuration.getStringList(teamStr);
-                List<Vector> vectors = new ArrayList<>();
-                for (String str : vectorStr) {
-                    vectors.add(strToVector(str));
-                }
-
-                Vector playerV2 = new Vector(player.getLocation().getX(), player.getLocation().getZ(), 0);
-
-                boolean center = false;
-                Vector centerPos = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
-                if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
-                    center = (distance(centerPos, playerV2) > configuration.getDouble("CenterRadius"));
-                }
-
-                boolean inside = GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), playerV2);
-
-                if (playerLocationMap.get(player) != null) {
-                    Audience.audience(player).sendActionBar(Component.text(playerLocationMap.get(player).toString()));
-                }
-                if (center && inside) {
-                    playerLocationMap.put(player, player.getLocation());
-                }
-            }
-        }
-    }
 
     private Vector strToVector(String str) {
         return new Vector(Integer.parseInt(str.split(",")[0]), Integer.parseInt(str.split(",")[1]), 0);
