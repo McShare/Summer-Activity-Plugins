@@ -370,6 +370,25 @@ public class BattleMain extends JavaPlugin implements Listener {
                 teleportPlayerToTeamBase(player);
             }
 
+            if (player.getGameMode().equals(GameMode.SPECTATOR)) {
+                String teamName = Objects.requireNonNull(team).getName();
+
+                List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(teamName)).
+                        getDoubleList("RespawnPosition");
+                double x = respawnPosition.get(0);
+                double y = respawnPosition.get(1);
+                double z = respawnPosition.get(2);
+
+                Location respawnLocation = new Location(world, x, y, z);
+
+                player.teleport(respawnLocation);
+                player.setBedSpawnLocation(respawnLocation, true);
+                Bukkit.getScheduler().runTaskLater(this, () -> {
+                    player.teleport(respawnLocation);
+                    player.setGameMode(GameMode.SURVIVAL);
+                }, configuration.getInt("RespawnCooldown") * 20L);
+            }
+
             player.displayName(Component.text(Team.getColorCode(Objects.requireNonNull(team))+name));
             showScores.UpdateScoreboard();
         } catch (Exception e) {
