@@ -3,6 +3,7 @@ package cc.venja.minebbs.login;
 import cc.venja.minebbs.login.commands.AutoLoginCommand;
 import cc.venja.minebbs.login.commands.LoginCommand;
 import cc.venja.minebbs.login.commands.RegisterCommand;
+import cc.venja.minebbs.login.database.PlayerInfo;
 import cc.venja.minebbs.login.database.dao.PlayerInfoDao;
 import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import io.papermc.paper.event.player.AsyncChatEvent;
@@ -26,6 +27,9 @@ import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LoginMain extends JavaPlugin implements Listener {
 
@@ -175,16 +179,26 @@ public class LoginMain extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent event) throws Exception {
+    public void onQuit(PlayerQuitEvent event) {
         if (FloodgateApi.getInstance().getPlayer(event.getPlayer().getUniqueId()) != null) return;
 
         if (onlinePlayers.get(event.getPlayer()) == Status.LOGIN) {
             var playerName = event.getPlayer().getName();
 
-            var playerDao = new PlayerInfoDao();
-            var player = playerDao.getPlayerByName(playerName);
-            player.setLastGameMode(event.getPlayer().getGameMode().getValue());
-            playerDao.updatePlayer(player);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        var playerDao = new PlayerInfoDao();
+                        PlayerInfo player;
+                        player = playerDao.getPlayerByName(playerName);
+                        player.setLastGameMode(event.getPlayer().getGameMode().getValue());
+                        playerDao.updatePlayer(player);
+                    } catch (SQLException exception) {
+                        exception.printStackTrace();
+                    }
+                }
+            }, 10);
         }
 
         onlinePlayers.remove(event.getPlayer());
