@@ -104,67 +104,70 @@ public class ArenaSystem implements Listener {
         configuration.save(configFile);
     }
 
-    public void runPlayerDetectionTask() throws SQLException {
+    public void runPlayerDetectionTask() {
         new BukkitRunnable() {
             @Override
             public void run() {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (!lastLocation.containsKey(p)) {
-                        lastLocation.put(p, p.getLocation());
-                    }
-                    if (LoginMain.instance.onlinePlayers.get(p) == LoginMain.Status.LOGIN) {
-                        Team team = RobotMain.getPlayerTeam(p.getName());
-                        String teamStr = Objects.requireNonNull(team).getName();
-                        isPlayerEnterPortal(teamStr, p);
-                        List<String> vectorStr = configuration.getStringList(teamStr);
-                        List<Vector> vectors = new ArrayList<>();
-                        for (String str : vectorStr) {
-                            vectors.add(strToVector(str));
-                        }
-                        Vector to = new Vector(p.getLocation().getX(), p.getLocation().getZ(), 0);
-
-                        boolean updateLocation = true;
-                        Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
-                        if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
-                            if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
-                                if (!p.isOp()) {
-                                    updateLocation = false;
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            p.teleport(lastLocation.get(p));
-                                        }
-
-                                    }.runTask(BattleMain.instance);
-                                    Audience.audience(p).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
-                                }
-                            }
-                        }
-
-                        String enable = "Enable" + teamStr;
-                        if (configuration.getBoolean(enable)) {
-                            if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
-                                if (!p.isOp()) {
-                                    updateLocation = false;
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            p.teleport(lastLocation.get(p));
-                                        }
-
-                                    }.runTask(BattleMain.instance);
-                                    Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
-                                }
-                            }
-                        }
-
-                        if (updateLocation) {
+                try {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (!lastLocation.containsKey(p)) {
                             lastLocation.put(p, p.getLocation());
                         }
+                        if (LoginMain.instance.onlinePlayers.get(p) == LoginMain.Status.LOGIN) {
+                            Team team = RobotMain.getPlayerTeam(p.getName());
+                            String teamStr = Objects.requireNonNull(team).getName();
+                            isPlayerEnterPortal(teamStr, p);
+                            List<String> vectorStr = configuration.getStringList(teamStr);
+                            List<Vector> vectors = new ArrayList<>();
+                            for (String str : vectorStr) {
+                                vectors.add(strToVector(str));
+                            }
+                            Vector to = new Vector(p.getLocation().getX(), p.getLocation().getZ(), 0);
 
+                            boolean updateLocation = true;
+                            Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
+                            if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
+                                if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
+                                    if (!p.isOp()) {
+                                        updateLocation = false;
+                                        new BukkitRunnable() {
+                                            @Override
+                                            public void run() {
+                                                p.teleport(lastLocation.get(p));
+                                            }
+
+                                        }.runTask(BattleMain.instance);
+                                        Audience.audience(p).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+                                    }
+                                }
+                            }
+
+                            String enable = "Enable" + teamStr;
+                            if (configuration.getBoolean(enable)) {
+                                if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
+                                    if (!p.isOp()) {
+                                        updateLocation = false;
+                                        new BukkitRunnable() {
+                                            @Override
+                                            public void run() {
+                                                p.teleport(lastLocation.get(p));
+                                            }
+
+                                        }.runTask(BattleMain.instance);
+                                        Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                                    }
+                                }
+                            }
+
+                            if (updateLocation) {
+                                lastLocation.put(p, p.getLocation());
+                            }
+
+                        }
                     }
+                } catch (SQLException e) {
+                    BattleMain.instance.getLogger().warning(e.toString());
                 }
-
             }
         }.runTaskTimerAsynchronously(BattleMain.instance, 0L, 0L);
     }
