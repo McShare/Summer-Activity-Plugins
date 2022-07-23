@@ -65,6 +65,10 @@ public class GenerateStrongHoldCommand implements CommandExecutor {
                             ironBlock.setType(Material.IRON_BLOCK);
                         }
                     }
+
+                    if (beacon.getType().equals(Material.BEACON) && glass.getType().equals(glassMaterial)) {
+                        commandSender.sendMessage(String.format("据点 %s 生成成功", Id));
+                    }
                 }
             }
         }
