@@ -119,20 +119,12 @@ public class RobotMain extends JavaPlugin implements Listener {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equals("doupdate")) {
             try {
-                updateLocalDataToDatabase();
                 reloadTeamListMap();
             } catch (SQLException e) {
                 getLogger().info(e.toString());
             }
         }
         return false;
-    }
-
-    private static void updateLocalDataToDatabase() throws SQLException {
-        for (String player : instance.team.getKeys(false)) {
-            updatePlayer(player, instance.team.getInt(player), instance.whitelist.getString(player));
-            instance.getLogger().info(player + " => " + instance.team.getInt(player));
-        }
     }
 
     public static void reloadTeamListMap() throws SQLException {
@@ -160,6 +152,7 @@ public class RobotMain extends JavaPlugin implements Listener {
     }
 
     public static boolean existsWhitelist(String player) {
+        instance.whitelist = YamlConfiguration.loadConfiguration(instance.whitelistFile);
         return instance.whitelist.contains(player.toLowerCase());
     }
 
@@ -212,27 +205,35 @@ public class RobotMain extends JavaPlugin implements Listener {
     }
 
     public static boolean existsPlayerTeam(String player) throws SQLException {
-        player = getRealPlayerName(player);
-        PlayerInfoDao dao = new PlayerInfoDao();
-        PlayerInfo playerInfo = dao.getPlayerByName(player);
-        if (playerInfo == null) {
-            return false;
-        }
-        return playerInfo.getTeam() != -1;
+        return getPlayerTeam(player) != null;
     }
 
     @Nullable
     public static Team getPlayerTeam(String player) throws SQLException {
         player = getRealPlayerName(player);
-        PlayerInfoDao dao = new PlayerInfoDao();
-        PlayerInfo playerInfo = dao.getPlayerByName(player);
-        if (playerInfo == null) {
-            return null;
+        Team team = null;
+        for (var entry : teamListMap.entrySet()) {
+            for (String teamPlayer : entry.getValue()) {
+                if (teamPlayer.equalsIgnoreCase(player)) {
+                    team = entry.getKey();
+                    break;
+                }
+            }
         }
-        if (playerInfo.getTeam() == -1) {
-            return null;
+        if (team == null) {
+            PlayerInfoDao playerInfoDao = new PlayerInfoDao();
+            PlayerInfo playerInfo = playerInfoDao.getPlayerByName(player);
+            if (playerInfo != null) {
+                team = Team.getByValue(playerInfo.getTeam());
+            }
+
+            if (team != null) {
+                List<String> players = teamListMap.get(team);
+                players.add(player);
+                teamListMap.put(team, players);
+            }
         }
-        return Team.getByValue(playerInfo.getTeam());
+        return team;
     }
 
     public static String getRealPlayerName(String player) {
