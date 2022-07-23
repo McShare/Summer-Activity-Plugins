@@ -44,9 +44,9 @@ public class ArenaSystem implements Listener {
         if (!configExists) {
             configuration.set("TeamRED", new ArrayList<String>() {{
                 //平原 NK 右上
-                add("1334,230");
-                add("1850,230");
-                add("1850,1110");
+                add("1334,229");
+                add("1851,229");
+                add("1851,1110");
                 add("1294,1010");
                 add("1082,812");
                 add("1114,412");
@@ -55,20 +55,20 @@ public class ArenaSystem implements Listener {
 
             configuration.set("TeamBLUE", new ArrayList<String>() {{
                 //雪山 PM 左上
-                add("230,230");
-                add("1314,230");
+                add("231,229");
+                add("1314,229");
                 add("1094,402");
                 add("1060,832");
                 add("888,1022");
-                add("230,910");
+                add("231,910");
             }});
             configuration.set("EnableTeamBLUE", true);
 
             configuration.set("TeamGREY", new ArrayList<String>() {{
                 //丛林 BDS 右下
                 add("1460,1850");
-                add("1850,1850");
-                add("1850,1130");
+                add("1851,1851");
+                add("1851,1130");
                 add("1294,1032");
                 add("1280,1178");
                 add("1182,1272");
@@ -78,9 +78,9 @@ public class ArenaSystem implements Listener {
 
             configuration.set("TeamYELLOW", new ArrayList<String>() {{
                 //沙漠 Geyser 左下
-                add("230,930");
-                add("230,1850");
-                add("1260,1850");
+                add("229,930");
+                add("229,1851");
+                add("1260,1851");
                 add("1052,1272");
                 add("1012,1272");
                 add("900,1176");
