@@ -12,6 +12,7 @@ import cc.venja.minebbs.battle.scores.TeamScoreHandle;
 import cc.venja.minebbs.battle.scores.showScores;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
+import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -266,6 +267,18 @@ public class BattleMain extends JavaPlugin implements Listener {
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        if (!event.getPlayer().isOp()) {
+            event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
+        }
+    }
+
+    @EventHandler
+    public void onBlockDestroy(BlockDestroyEvent event) {
+        event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
     @EventHandler
