@@ -46,7 +46,7 @@ public enum Team {
                 return "§b";
             }
             case GREY -> {
-                return "§2";
+                return "§7";
             }
             case YELLOW -> {
                 return "§e";
