@@ -104,7 +104,7 @@ public class ArenaSystem implements Listener {
         configuration.save(configFile);
     }
 
-    public void runPlayerDetectionTask() {
+    public void runPlayerDetectionTask() throws SQLException {
         new BukkitRunnable() {
             @Override
             public void run() {

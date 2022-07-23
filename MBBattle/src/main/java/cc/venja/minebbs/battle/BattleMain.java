@@ -143,10 +143,11 @@ public class BattleMain extends JavaPlugin implements Listener {
             teamScoreHandleList.add(new TeamScoreHandle(Team.BLUE));
             teamScoreHandleList.add(new TeamScoreHandle(Team.GREY));
             teamScoreHandleList.add(new TeamScoreHandle(Team.YELLOW));
+            arenaSystem.runPlayerDetectionTask();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        arenaSystem.runPlayerDetectionTask();
+
     }
 
     @EventHandler
