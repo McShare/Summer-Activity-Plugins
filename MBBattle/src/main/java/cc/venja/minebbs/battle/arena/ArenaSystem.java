@@ -55,18 +55,18 @@ public class ArenaSystem implements Listener {
 
             configuration.set("TeamBLUE", new ArrayList<String>() {{
                 //雪山 PM 左上
-                add("231,229");
+                add("229,229");
                 add("1314,229");
                 add("1094,402");
                 add("1060,832");
                 add("888,1022");
-                add("231,910");
+                add("229,910");
             }});
             configuration.set("EnableTeamBLUE", true);
 
             configuration.set("TeamGREY", new ArrayList<String>() {{
                 //丛林 BDS 右下
-                add("1460,1850");
+                add("1460,1851");
                 add("1851,1851");
                 add("1851,1130");
                 add("1294,1032");
