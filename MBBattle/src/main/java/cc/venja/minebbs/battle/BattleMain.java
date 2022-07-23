@@ -145,6 +145,7 @@ public class BattleMain extends JavaPlugin implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        arenaSystem.runPlayerDetectionTask();
     }
 
     @EventHandler

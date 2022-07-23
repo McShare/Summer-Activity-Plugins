@@ -7,6 +7,7 @@ import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
@@ -27,7 +29,7 @@ import static org.bukkit.Sound.BLOCK_END_PORTAL_SPAWN;
 
 public class ArenaSystem implements Listener {
     public static ArenaSystem instance;
-
+    public static Map<Player, Location> lastLocation = new ConcurrentHashMap<>();
     public File configFile;
     public YamlConfiguration configuration;
 
@@ -102,6 +104,71 @@ public class ArenaSystem implements Listener {
         configuration.save(configFile);
     }
 
+    public void runPlayerDetectionTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (!lastLocation.containsKey(p)) {
+                        lastLocation.put(p, p.getLocation());
+                    }
+                    if (LoginMain.instance.onlinePlayers.get(p) == LoginMain.Status.LOGIN) {
+                        Team team = RobotMain.getPlayerTeam(p.getName());
+                        String teamStr = Objects.requireNonNull(team).getName();
+                        isPlayerEnterPortal(teamStr, p);
+                        List<String> vectorStr = configuration.getStringList(teamStr);
+                        List<Vector> vectors = new ArrayList<>();
+                        for (String str : vectorStr) {
+                            vectors.add(strToVector(str));
+                        }
+                        Vector to = new Vector(p.getLocation().getX(), p.getLocation().getZ(), 0);
+
+                        boolean updateLocation = true;
+                        Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
+                        if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
+                            if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
+                                if (!p.isOp()) {
+                                    updateLocation = false;
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            p.teleport(lastLocation.get(p));
+                                        }
+
+                                    }.runTask(BattleMain.instance);
+                                    Audience.audience(p).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+                                }
+                            }
+                        }
+
+                        String enable = "Enable" + teamStr;
+                        if (configuration.getBoolean(enable)) {
+                            if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
+                                if (!p.isOp()) {
+                                    updateLocation = false;
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            p.teleport(lastLocation.get(p));
+                                        }
+
+                                    }.runTask(BattleMain.instance);
+                                    Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                                }
+                            }
+                        }
+
+                        if (updateLocation) {
+                            lastLocation.put(p, p.getLocation());
+                        }
+
+                    }
+                }
+
+            }
+        }.runTaskTimerAsynchronously(BattleMain.instance, 0L, 0L);
+    }
+
     @EventHandler
     public void onEntityMove(ProjectileHitEvent event) throws SQLException {
         if (event.getEntity().getShooter() instanceof Player player) {
@@ -145,6 +212,7 @@ public class ArenaSystem implements Listener {
         }
     }
 
+    /*
     @EventHandler
     public void onMove(PlayerMoveEvent event) throws SQLException {
         if (LoginMain.instance.onlinePlayers.get(event.getPlayer()) == LoginMain.Status.LOGIN) {
@@ -180,6 +248,7 @@ public class ArenaSystem implements Listener {
 
         }
     }
+    */
 
     public void isPlayerEnterPortal(String TeamStr, Player event) {
         if (!configuration.getBoolean("EnablePortal")){
