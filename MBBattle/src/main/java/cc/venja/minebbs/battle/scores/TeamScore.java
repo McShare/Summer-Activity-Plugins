@@ -37,12 +37,14 @@ public class TeamScore {
 
     public void add(int score) throws Exception {
         this.set(BattleMain.teamScore.getInt(team.getName())+score);
-        showScores.UpdateScoreboard();
+        showScores show = new showScores();
+        show.UpdateScoreboard();
     }
 
     public void deduct(int score) throws Exception {
         this.set(BattleMain.teamScore.getInt(team.getName())-score);
-        showScores.UpdateScoreboard();
+        showScores show = new showScores();
+        show.UpdateScoreboard();
     }
 
     private void saveScoreToFile() throws Exception {

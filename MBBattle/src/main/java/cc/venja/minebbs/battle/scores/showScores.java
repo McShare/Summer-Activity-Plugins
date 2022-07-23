@@ -16,11 +16,11 @@ import java.util.*;
 
 
 public class showScores {
-    private static final ScoreboardManager manager = Bukkit.getScoreboardManager(); // 取得计分板管理器
-    private static final Scoreboard scoreboard = manager.getNewScoreboard(); // 新建计分板
-    private static Objective Board;
+    private final ScoreboardManager manager = Bukkit.getScoreboardManager(); // 取得计分板管理器
+    private final Scoreboard scoreboard = manager.getMainScoreboard(); // 新建计分板
+    private Objective Board;
 
-    public static void UpdateScoreboard() throws SQLException {
+    public void UpdateScoreboard() throws SQLException {
         if (Board != null) {
             Board.unregister();
         } else {

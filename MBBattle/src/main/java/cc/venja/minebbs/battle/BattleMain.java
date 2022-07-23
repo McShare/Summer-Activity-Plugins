@@ -405,7 +405,8 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
 
             player.displayName(Component.text(Team.getColorCode(Objects.requireNonNull(team))+name));
-            showScores.UpdateScoreboard();
+            showScores show = new showScores();
+            show.UpdateScoreboard();
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
