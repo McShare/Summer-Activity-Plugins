@@ -59,7 +59,7 @@ public class showScores {
         for (Map.Entry<String,Integer> mapping: TeamList){
             content.add(TeamName2TeamColor(mapping.getKey())+mapping.getKey()+": §4"+mapping.getValue());
         }
-
+        Collections.reverse(content); //倒序列表
         for (int k = 0; k <= content.size(); k++) {
             Score score = Board.getScore(content.get(k));
             score.setScore(k);
@@ -81,7 +81,7 @@ public class showScores {
         return switch (TeamName) {
             case "TeamRED" -> "§c";
             case "TeamBLUE" -> "§9";
-            case "TeamGRAY" -> "§7";
+            case "TeamGREY" -> "§7";
             case "TeamYELLOW" -> "§e";
             default -> "";
         };
