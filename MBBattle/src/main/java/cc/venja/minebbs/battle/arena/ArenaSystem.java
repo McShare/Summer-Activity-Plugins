@@ -227,14 +227,10 @@ public class ArenaSystem implements Listener {
                     for(String str : CenterVectorStr) {
                         CenterVectors.add(strToVector(str));
                     }
-                    if(!GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
+                    if(GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
                         if (!player.isOp()) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    player.teleport(lastLocation.get(player));
-                                }
-                            }.runTask(BattleMain.instance);
+                            event.setCancelled(true);
+                            event.getEntity().remove();
                             Audience.audience(player).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
                         }
                     }
