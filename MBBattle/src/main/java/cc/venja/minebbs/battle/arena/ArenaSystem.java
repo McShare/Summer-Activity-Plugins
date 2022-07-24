@@ -167,7 +167,6 @@ public class ArenaSystem implements Listener {
 
                             //判断是否在中央区域内
                             if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
-
                                 if(!GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
                                     if (!p.isOp()) {
                                         updateLocation = false;
@@ -216,11 +215,27 @@ public class ArenaSystem implements Listener {
 
                 Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
                 if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
-                    if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
-                        event.setCancelled(true);
-                        event.getEntity().setVelocity(new Vector(0, 0, 0));
-                        event.getEntity().remove();
-                        Audience.audience(player).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+//                    if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
+//                        event.setCancelled(true);
+//                        event.getEntity().setVelocity(new Vector(0, 0, 0));
+//                        event.getEntity().remove();
+//                        Audience.audience(player).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+//                    }
+                    List<String> CenterVectorStr = configuration.getStringList("CenterArea");
+                    List<Vector> CenterVectors = new ArrayList<>();
+                    for(String str : CenterVectorStr) {
+                        CenterVectors.add(strToVector(str));
+                    }
+                    if(!GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
+                        if (!player.isOp()) {
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    player.teleport(lastLocation.get(player));
+                                }
+                            }.runTask(BattleMain.instance);
+                            Audience.audience(player).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+                        }
                     }
                 }
 
