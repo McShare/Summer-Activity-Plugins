@@ -43,7 +43,7 @@ public class ArenaSystem implements Listener {
         configuration = YamlConfiguration.loadConfiguration(configFile);
         if (!configExists) {
             configuration.set("TeamRED", new ArrayList<String>() {{
-                //平原 NK 右上
+                //平原 NK 右上 *
                 add("1334,229");
                 add("1851,229");
                 add("1851,1110");
@@ -54,37 +54,28 @@ public class ArenaSystem implements Listener {
             configuration.set("EnableTeamRED", true);
 
             configuration.set("TeamBLUE", new ArrayList<String>() {{
-                //雪山 PM 左上
-                add("229,229");
-                add("1314,229");
-                add("1094,402");
-                add("1060,832");
-                add("888,1022");
-                add("229,910");
+                //雪山 PM 左上 *
+                add("229,830");
+                add("844,1030");
+                add("1160,230");
             }});
             configuration.set("EnableTeamBLUE", true);
 
             configuration.set("TeamGREY", new ArrayList<String>() {{
-                //丛林 BDS 右下
-                add("1460,1851");
-                add("1851,1851");
+                //丛林 BDS 右下 *
                 add("1851,1130");
-                add("1294,1032");
-                add("1280,1178");
-                add("1182,1272");
-                add("1072,1272");
+                add("1370,1075");
+                add("1170,1310");
+                add("1170,1851");
+
             }});
             configuration.set("EnableTeamGREY", true);
 
             configuration.set("TeamYELLOW", new ArrayList<String>() {{
                 //沙漠 Geyser 左下
-                add("229,930");
-                add("229,1851");
-                add("1260,1851");
-                add("1052,1272");
-                add("1012,1272");
-                add("900,1176");
-                add("880,1052");
+                add("1115,1851");
+                add("1115,1300");
+                add("229,860");
             }});
             configuration.set("EnableTeamYELLOW", true);
 
@@ -95,8 +86,15 @@ public class ArenaSystem implements Listener {
             configuration.set("TeamREDAssemblePoint", "");
             configuration.set("TeamGREYAssemblePoint", "");
             configuration.set("TeamYELLOWAssemblePoint", "");
-            configuration.set("CenterPos", "1103,1108");
-            configuration.set("CenterRadius", 200);
+
+            configuration.set("CenterArea",new ArrayList<String>(){{
+                add("800,1110");
+                add("1067,842");
+                add("1322,1038");
+                add("1160,1265");
+            }});
+//            configuration.set("CenterPos", "1103,1108");
+//            configuration.set("CenterRadius", 200);
             configuration.set("CenterAccess", false);
             configuration.set("CenterEnable", false);
         }
@@ -105,6 +103,14 @@ public class ArenaSystem implements Listener {
     }
 
     public void runPlayerDetectionTask() {
+
+        List<String> CenterVectorStr = configuration.getStringList("CenterArea");
+        List<Vector> CenterVectors = new ArrayList<>();
+        for(String str : CenterVectorStr) {
+            CenterVectors.add(strToVector(str));
+        }
+        //提前加载中心区域范围
+
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -125,25 +131,25 @@ public class ArenaSystem implements Listener {
                             Vector to = new Vector(p.getLocation().getX(), p.getLocation().getZ(), 0);
 
                             boolean updateLocation = true;
-                            Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
-                            if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
-                                if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
-                                    if (!p.isOp()) {
-                                        updateLocation = false;
-                                        new BukkitRunnable() {
-                                            @Override
-                                            public void run() {
-                                                p.teleport(lastLocation.get(p));
-                                            }
-
-                                        }.runTask(BattleMain.instance);
-                                        Audience.audience(p).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
-                                    }
-                                }
-                            }
+//                            Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
+//                            if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
+//                                if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
+//                                    if (!p.isOp()) {
+//                                        updateLocation = false;
+//                                        new BukkitRunnable() {
+//                                            @Override
+//                                            public void run() {
+//                                                p.teleport(lastLocation.get(p));
+//                                            }
+//
+//                                        }.runTask(BattleMain.instance);
+//                                        Audience.audience(p).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+//                                    }
+//                                }
+//                            }
 
                             String enable = "Enable" + teamStr;
-                            if (configuration.getBoolean(enable)) {
+                            if (configuration.getBoolean(enable)) {//判断是否在队伍区域内
                                 if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
                                     if (!p.isOp()) {
                                         updateLocation = false;
@@ -159,10 +165,26 @@ public class ArenaSystem implements Listener {
                                 }
                             }
 
+                            //判断是否在中央区域内
+                            if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
+
+                                if(!GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
+                                    if (!p.isOp()) {
+                                        updateLocation = false;
+                                        new BukkitRunnable() {
+                                            @Override
+                                            public void run() {
+                                                p.teleport(lastLocation.get(p));
+                                            }
+                                        }.runTask(BattleMain.instance);
+                                        Audience.audience(p).sendActionBar(Component.text("§c非决斗日禁止进入中心区"));
+                                    }
+                                }
+                            }
+
                             if (updateLocation) {
                                 lastLocation.put(p, p.getLocation());
                             }
-
                         }
                     }
                 } catch (SQLException e) {
