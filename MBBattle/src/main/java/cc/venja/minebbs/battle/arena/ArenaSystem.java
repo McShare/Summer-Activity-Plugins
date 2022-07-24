@@ -103,12 +103,6 @@ public class ArenaSystem implements Listener {
     }
 
     public void runPlayerDetectionTask() {
-
-        List<String> CenterVectorStr = configuration.getStringList("CenterArea");
-        List<Vector> CenterVectors = new ArrayList<>();
-        for(String str : CenterVectorStr) {
-            CenterVectors.add(strToVector(str));
-        }
         //提前加载中心区域范围
 
         new BukkitRunnable() {
@@ -150,8 +144,8 @@ public class ArenaSystem implements Listener {
 
                             String enable = "Enable" + teamStr;
                             if (configuration.getBoolean(enable)) {//判断是否在队伍区域内
+                                if (!p.isOp()) {
                                 if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
-                                    if (!p.isOp()) {
                                         updateLocation = false;
                                         new BukkitRunnable() {
                                             @Override
@@ -167,8 +161,13 @@ public class ArenaSystem implements Listener {
 
                             //判断是否在中央区域内
                             if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
+                                List<String> CenterVectorStr = configuration.getStringList("CenterArea");
+                                List<Vector> CenterVectors = new ArrayList<>();
+                                for(String str : CenterVectorStr) {
+                                    CenterVectors.add(strToVector(str));
+                                }
+                                if (!p.isOp()) {
                                 if(!GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
-                                    if (!p.isOp()) {
                                         updateLocation = false;
                                         new BukkitRunnable() {
                                             @Override
@@ -213,7 +212,7 @@ public class ArenaSystem implements Listener {
             if (location != null) {
                 Vector to = new Vector(location.getX(), location.getZ(), 0);
 
-                Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
+//                Vector center = strToVector(Objects.requireNonNull(configuration.getString("CenterPos")));
                 if (!configuration.getBoolean("CenterAccess") && !configuration.getBoolean("CenterEnable")) {
 //                    if (distance(center, to) <= configuration.getDouble("CenterRadius")) {
 //                        event.setCancelled(true);
