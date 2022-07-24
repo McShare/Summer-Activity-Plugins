@@ -83,6 +83,7 @@ public class showScores {
             case "TeamBLUE" -> "§9";
             case "TeamGRAY" -> "§7";
             case "TeamYELLOW" -> "§e";
+            default -> "";
         };
     }
 }
