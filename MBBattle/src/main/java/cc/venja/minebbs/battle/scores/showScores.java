@@ -24,12 +24,12 @@ public class showScores {
         if (Board != null) {
             Board.unregister();
         } else {
-            Board = scoreboard.registerNewObjective("title", "dummy", Component.text("§l积分榜"));
+            Board = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
 
         }
 
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
-        content.add(0,"§2积分前5的玩家");
+        content.add("§2积分前5的玩家");
 
         Map<String, Integer> PlayersScores = new TreeMap<>(); //创建玩家积分缓存
         for (PlayerScoreHandle scoreHandle : BattleMain.instance.playerScoreHandleList) {
@@ -47,7 +47,7 @@ public class showScores {
             content.add(PlayerName2TeamColor(mapping.getKey())+mapping.getKey()+": §4"+mapping.getValue());
             i++;
         }
-        content.add(0,"§2团队总分");
+        content.add("§2团队总分");
         Map<String,Integer> TeamScores = new TreeMap<>(); //创建团队积分缓存
         for (TeamScoreHandle scoreHandle : BattleMain.instance.teamScoreHandleList){
             TeamScore scores = scoreHandle.getScore();
@@ -83,7 +83,6 @@ public class showScores {
             case "TeamBLUE" -> "§9";
             case "TeamGRAY" -> "§7";
             case "TeamYELLOW" -> "§e";
-            default -> "TeamName";
         };
     }
 }
