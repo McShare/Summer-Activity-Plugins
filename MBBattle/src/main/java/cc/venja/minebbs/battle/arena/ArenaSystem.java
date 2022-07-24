@@ -147,7 +147,7 @@ public class ArenaSystem implements Listener {
                             String enable = "Enable" + teamStr;
                             if (configuration.getBoolean(enable)) {//判断是否在队伍区域内
                                 if (!p.isOp()) {
-                                if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
+                                    if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
                                         updateLocation = false;
                                         new BukkitRunnable() {
                                             @Override
@@ -169,7 +169,7 @@ public class ArenaSystem implements Listener {
                                     CenterVectors.add(strToVector(str));
                                 }
                                 if (!p.isOp()) {
-                                if(!GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
+                                    if(GFG.isInside(CenterVectors.toArray(Vector[]::new),CenterVectors.size(),to)){
                                         updateLocation = false;
                                         new BukkitRunnable() {
                                             @Override
