@@ -59,10 +59,11 @@ public class showScores {
         for (Map.Entry<String,Integer> mapping: TeamList){
             content.add(TeamName2TeamColor(mapping.getKey())+mapping.getKey()+": §4"+mapping.getValue());
         }
-        Collections.reverse(content); //倒序列表
-        for (int k = 0; k <= content.size(); k++) {
-            Score score = Board.getScore(content.get(k));
-            score.setScore(k);
+        int size = content.size();
+        while (size >= 0) {
+            Score score = Board.getScore(content.get(size));
+            score.setScore(size);
+            size--;
         }
 
         Collection<? extends Player> AllPlayer = Bukkit.getOnlinePlayers(); // 获取玩家在线名单用于发送新的积分榜
