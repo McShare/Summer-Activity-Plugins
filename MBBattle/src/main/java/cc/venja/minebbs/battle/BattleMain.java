@@ -10,6 +10,7 @@ import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
 import cc.venja.minebbs.battle.scores.PlayerScoreHandle;
 import cc.venja.minebbs.battle.scores.TeamScoreHandle;
 import cc.venja.minebbs.battle.scores.ShowScore;
+import cc.venja.minebbs.battle.team.ColorTeamName;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
@@ -67,6 +68,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public Map<String, List<Player>> occupies = new HashMap<>();
 
+    public ColorTeamName colorTeamName;
     public ArenaSystem arenaSystem;
     public List<TeamScoreHandle> teamScoreHandleList = new ArrayList<>();
     public List<PlayerScoreHandle> playerScoreHandleList = new ArrayList<>();
@@ -148,6 +150,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             teamScoreHandleList.add(new TeamScoreHandle(Team.YELLOW));
 
             arenaSystem.runPlayerDetectionTask();
+            colorTeamName = new ColorTeamName();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -181,6 +184,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
         Team teamValue = RobotMain.getPlayerTeam(event.getPlayer().getName());
         String team = Objects.requireNonNull(teamValue).getName();
+
 
         List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(team)).
                 getDoubleList("RespawnPosition");
@@ -382,6 +386,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
             String name = RobotMain.getRealPlayerName(player.getName());
             Team team = RobotMain.getPlayerTeam(name);
+            String teamName = Objects.requireNonNull(team).getName();
+
+            org.bukkit.scoreboard.Team scoreboardTeam = colorTeamName.getTeamByTeamName(teamName);
+            if (!scoreboardTeam.hasEntry(player.getName())) {
+                scoreboardTeam.addEntry(player.getName());
+            }
 
             if (!joinRecord.contains(name.toLowerCase())) {
                 joinRecord.set(name.toLowerCase(), true);
@@ -390,7 +400,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
 
             if (player.getGameMode().equals(GameMode.SPECTATOR)) {
-                String teamName = Objects.requireNonNull(team).getName();
+
 
                 List<Double> respawnPosition = Objects.requireNonNull(configuration.getConfigurationSection(teamName)).
                         getDoubleList("RespawnPosition");
@@ -800,4 +810,5 @@ public class BattleMain extends JavaPlugin implements Listener {
         }
         return false;
     }
+
 }
