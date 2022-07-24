@@ -28,6 +28,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -157,6 +158,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     }
 
+    /*
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) throws SQLException {
         Entity damager = event.getDamager();
@@ -176,6 +178,9 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
         }
     }
+
+
+   */
 
     @EventHandler
     public void onPlayerRespawn(PlayerPostRespawnEvent event) throws SQLException {
@@ -343,10 +348,17 @@ public class BattleMain extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getPlayer();
-
         for (PlayerScoreHandle scoreHandle: playerScoreHandleList) {
             if (player.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
                 scoreHandle.onPlayerDeath();
+            }
+        }
+        if (player.getKiller() != null) {
+            Player killer = player.getKiller();
+            for (PlayerScoreHandle scoreHandle: playerScoreHandleList) {
+                if (killer.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
+                    scoreHandle.onKillPlayer();
+                }
             }
         }
     }
