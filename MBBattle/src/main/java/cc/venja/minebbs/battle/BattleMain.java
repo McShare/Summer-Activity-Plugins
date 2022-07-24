@@ -9,7 +9,7 @@ import cc.venja.minebbs.battle.enums.GameStatus;
 import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
 import cc.venja.minebbs.battle.scores.PlayerScoreHandle;
 import cc.venja.minebbs.battle.scores.TeamScoreHandle;
-import cc.venja.minebbs.battle.scores.showScores;
+import cc.venja.minebbs.battle.scores.ShowScore;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
@@ -36,6 +36,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Objective;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -71,6 +72,8 @@ public class BattleMain extends JavaPlugin implements Listener {
     public List<PlayerScoreHandle> playerScoreHandleList = new ArrayList<>();
 
     public static GameStatus status;
+
+    public Objective scoreboard;
 
     public World world;
 
@@ -143,6 +146,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             teamScoreHandleList.add(new TeamScoreHandle(Team.BLUE));
             teamScoreHandleList.add(new TeamScoreHandle(Team.GREY));
             teamScoreHandleList.add(new TeamScoreHandle(Team.YELLOW));
+
             arenaSystem.runPlayerDetectionTask();
         } catch (Exception e) {
             e.printStackTrace();
@@ -405,7 +409,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
 
             player.displayName(Component.text(Team.getColorCode(Objects.requireNonNull(team))+name));
-            showScores show = new showScores();
+            ShowScore show = new ShowScore();
             show.UpdateScoreboard();
         } catch (Exception e) {
             this.getLogger().warning(e.toString());

@@ -40,13 +40,13 @@ public class PersonalScore {
 
     public void add(int score) throws Exception {
         this.set(BattleMain.personalScore.getInt(playerName)+score);
-        showScores show = new showScores();
+        ShowScore show = new ShowScore();
         show.UpdateScoreboard();
     }
 
     public void deduct(int score) throws Exception {
         this.set(BattleMain.personalScore.getInt(playerName)-score);
-        showScores show = new showScores();
+        ShowScore show = new ShowScore();
         show.UpdateScoreboard();
     }
 

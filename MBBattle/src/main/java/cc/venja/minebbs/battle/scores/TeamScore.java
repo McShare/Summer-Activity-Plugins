@@ -2,7 +2,6 @@ package cc.venja.minebbs.battle.scores;
 
 import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.login.enums.Team;
-import cc.venja.minebbs.battle.scores.showScores;
 
 public class TeamScore {
     public Team getTeam() {
@@ -33,18 +32,16 @@ public class TeamScore {
     public void set(int score) throws Exception {
         BattleMain.teamScore.set(team.getName(), score);
         saveScoreToFile();
+        ShowScore show = new ShowScore();
+        show.UpdateScoreboard();
     }
 
     public void add(int score) throws Exception {
         this.set(BattleMain.teamScore.getInt(team.getName())+score);
-        showScores show = new showScores();
-        show.UpdateScoreboard();
     }
 
     public void deduct(int score) throws Exception {
         this.set(BattleMain.teamScore.getInt(team.getName())-score);
-        showScores show = new showScores();
-        show.UpdateScoreboard();
     }
 
     private void saveScoreToFile() throws Exception {

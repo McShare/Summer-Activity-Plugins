@@ -3,7 +3,6 @@ package cc.venja.minebbs.battle.scores;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
@@ -15,17 +14,15 @@ import java.sql.SQLException;
 import java.util.*;
 
 
-public class showScores {
+public class ShowScore {
     private final ScoreboardManager manager = Bukkit.getScoreboardManager(); // 取得计分板管理器
     private final Scoreboard scoreboard = manager.getMainScoreboard(); // 新建计分板
-    private Objective Board;
 
     public void UpdateScoreboard() throws SQLException {
-        if (Board != null) {
-            Board.unregister();
+        if (scoreboard.getObjective("jifenban") == null) {
+            BattleMain.instance.scoreboard = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
         } else {
-            Board = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
-
+            BattleMain.instance.scoreboard = scoreboard.getObjective("jifenban");
         }
 
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
@@ -51,7 +48,7 @@ public class showScores {
         Map<String,Integer> TeamScores = new TreeMap<>(); //创建团队积分缓存
         for (TeamScoreHandle scoreHandle : BattleMain.instance.teamScoreHandleList){
             TeamScore scores = scoreHandle.getScore();
-            TeamScores.put(Objects.requireNonNull(scores.team).getName(),scores.get());
+            TeamScores.put(Objects.requireNonNull(scores.team).getName(), scores.get());
         }
         List<Map.Entry<String,Integer>> TeamList = new ArrayList<>(TeamScores.entrySet());
         TeamList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue())); //团队积分倒序
@@ -61,7 +58,7 @@ public class showScores {
         }
         Collections.reverse(content); //倒序列表
         for (int k = 0; k <= content.size(); k++) {
-            Score score = Board.getScore(content.get(k));
+            Score score = BattleMain.instance.scoreboard.getScore(content.get(k));
             score.setScore(k);
         }
 
