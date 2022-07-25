@@ -8,12 +8,14 @@ import cc.venja.minebbs.robot.RobotMain;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
@@ -28,6 +30,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.bukkit.Sound.BLOCK_END_PORTAL_SPAWN;
+import static org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE;
 
 public class ArenaSystem implements Listener {
     public static ArenaSystem instance;
@@ -236,6 +239,8 @@ public class ArenaSystem implements Listener {
                 event.playSound(event, BLOCK_END_PORTAL_SPAWN, 1F, 0F);
                 Location toLoc = new Location(event.getWorld(), 1075, 71, 925);
                 runSync(() -> forceTeleport(event, toLoc));
+                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
+                event.addPotionEffect(resistance); // 传送后添加6秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -244,6 +249,8 @@ public class ArenaSystem implements Listener {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 895,71,1090);
                 runSync(() -> forceTeleport(event, toLoc));
+                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
+                event.addPotionEffect(resistance); // 传送后添加6秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -252,6 +259,8 @@ public class ArenaSystem implements Listener {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1260,69,1045);
                 runSync(() -> forceTeleport(event, toLoc));
+                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
+                event.addPotionEffect(resistance); // 传送后添加6秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -260,6 +269,8 @@ public class ArenaSystem implements Listener {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1140,97,1220);
                 runSync(() -> forceTeleport(event, toLoc));
+                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
+                event.addPotionEffect(resistance); // 传送后添加5秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
