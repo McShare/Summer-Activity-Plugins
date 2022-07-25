@@ -14,15 +14,20 @@ import cc.venja.minebbs.robot.RobotMain;
 import java.sql.SQLException;
 import java.util.*;
 
+import static org.bukkit.Bukkit.getServer;
+
 
 public class ShowScore {
     private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard(); // 新建计分板
 
     public void UpdateScoreboard() throws SQLException {
         if (scoreboard.getObjective("jifenban") == null) {
+            BattleMain.instance.scoreboard.unregister();
             BattleMain.instance.scoreboard = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
+            getServer().getLogger().info("注册了新的计分项");
         } else {
             BattleMain.instance.scoreboard = scoreboard.getObjective("jifenban");
+            getServer().getLogger().info("取得了旧的计分项");
         }
         assert BattleMain.instance.scoreboard != null;
         BattleMain.instance.scoreboard.setDisplaySlot(DisplaySlot.SIDEBAR);
