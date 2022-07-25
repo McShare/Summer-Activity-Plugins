@@ -20,7 +20,7 @@ public class ColorTeamName {
         red = registerNewTeamIfNotExist("red");
         red.setColor(ChatColor.RED);
         blue = registerNewTeamIfNotExist("blue");
-        blue.setColor(ChatColor.BLUE);
+        blue.setColor(ChatColor.AQUA);
         grey = registerNewTeamIfNotExist("grey");
         grey.setColor(ChatColor.GRAY);
         yellow = registerNewTeamIfNotExist("yellow");
