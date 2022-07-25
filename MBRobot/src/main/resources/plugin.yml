@@ -10,3 +10,5 @@ softdepend:
 commands:
   doupdate:
     description: Robot Data update
+  analyse:
+    description: 分析在线数据
