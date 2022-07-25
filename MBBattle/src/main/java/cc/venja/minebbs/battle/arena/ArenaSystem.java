@@ -140,10 +140,10 @@ public class ArenaSystem implements Listener {
                             if (configuration.getBoolean(enable)) {
 
                                 if (!p.isOp()) {
-                                    //判断是否在队伍区域内
+                                    // 判断是否在队伍区域内
                                     if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
 
-                                        //判断是否原先在中央区域内
+                                        // 判断是否原先在中央区域内
                                         if (GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), from)) {
                                             if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
                                                 if (!GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), to)) {
