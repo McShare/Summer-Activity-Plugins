@@ -156,7 +156,6 @@ public class ArenaSystem implements Listener {
                                                 // 把玩家送回基地
                                                 BattleMain.instance.teleportPlayerToTeamBase(p);
                                             }
-
                                         } else {
                                             updateLocation = false;
                                             new BukkitRunnable() {
@@ -184,6 +183,7 @@ public class ArenaSystem implements Listener {
             }
         }.runTaskTimerAsynchronously(BattleMain.instance, 0L, 0L);
     }
+
 
     @EventHandler
     public void onEntityMove(ProjectileHitEvent event) throws SQLException {
