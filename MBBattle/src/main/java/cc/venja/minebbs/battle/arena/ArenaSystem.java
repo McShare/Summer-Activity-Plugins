@@ -154,8 +154,9 @@ public class ArenaSystem implements Listener {
                                                             p.teleport(lastLocation.get(p));
                                                         }
                                                     }.runTask(BattleMain.instance);
+
+                                                    Audience.audience(p).sendActionBar(Component.text("§c禁止离开中心区"));
                                                 }
-                                                Audience.audience(p).sendActionBar(Component.text("§c禁止离开中心区"));
                                             } else {
                                                 // 把玩家送回基地
                                                 BattleMain.instance.teleportPlayerToTeamBase(p);
@@ -234,7 +235,7 @@ public class ArenaSystem implements Listener {
             if (x == 1848 && Math.max(330, z) == Math.min(z, 336)) {
                 event.playSound(event, BLOCK_END_PORTAL_SPAWN, 1F, 0F);
                 Location toLoc = new Location(event.getWorld(), 1075, 71, 925);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
@@ -242,7 +243,7 @@ public class ArenaSystem implements Listener {
             if (x == 374 && Math.max(328,z) == Math.min(z,334)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 895,71,1090);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
@@ -250,7 +251,7 @@ public class ArenaSystem implements Listener {
             if (x == 1730 && Math.max(1707,z) == Math.min(z,1713)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1260,69,1045);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
@@ -258,7 +259,7 @@ public class ArenaSystem implements Listener {
             if (x == 294 && Math.max(1577,z) == Math.min(z,1581)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1140,97,1220);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
