@@ -41,10 +41,6 @@ public class GenerateStrongHoldCommand implements CommandExecutor {
                 int z = position.get(2);
                 World world = Bukkit.getWorld("world");
                 if (world != null) {
-                    Block beacon = world.getBlockAt(x, y-1, z);
-
-                    beacon.setType(Material.BEACON);
-
                     String ownerTeam = stronghold.get("OwnerTeam").toString();
 
                     Material glassMaterial = switch (ownerTeam) {
@@ -54,17 +50,23 @@ public class GenerateStrongHoldCommand implements CommandExecutor {
                         case "TeamYELLOW" -> Material.YELLOW_STAINED_GLASS;
                         default -> Material.GLASS;
                     };
-
-                    Block glass = world.getBlockAt(x, y, z);
-                    glass.setType(glassMaterial);
-
+                    Block beacon;
+                    Block glass = null;
                     Block ironBlock;
                     for (int x2 = -1; x2 < 2; x2++) {
                         for (int z2 = -1; z2 < 2; z2++) {
+                            beacon = world.getBlockAt(x+x2, y-1, z+z2);
+                            beacon.setType(glassMaterial);
+                            
+                            glass = world.getBlockAt(x+x2, y, z+z2);
+                            glass.setType(glassMaterial);
+                            
                             ironBlock = world.getBlockAt(x+x2, y-2, z+z2);
                             ironBlock.setType(Material.IRON_BLOCK);
                         }
                     }
+                    beacon = world.getBlockAt(x, y-1, z);
+                    beacon.setType(Material.BEACON);
 
                     if (beacon.getType().equals(Material.BEACON) && glass.getType().equals(glassMaterial)) {
                         commandSender.sendMessage(String.format("据点 %s 生成成功", Id));
