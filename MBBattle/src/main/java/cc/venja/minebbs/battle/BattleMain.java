@@ -753,6 +753,10 @@ public class BattleMain extends JavaPlugin implements Listener {
                                                     if (!glass.getType().equals(glassMaterial)) {
                                                         glass.setType(glassMaterial);
                                                     }
+
+                                                    String ownerTeamWithColor = Team.getColorCode(ownerTeamObj) + ownerTeam + "§r";
+                                                    occupyShow.setTitle(String.format("%s 所属队伍: %s", strongholdId, ownerTeamWithColor)
+                                                    );
                                                 }
                                             }
                                         }
