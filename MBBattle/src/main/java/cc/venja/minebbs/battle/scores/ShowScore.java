@@ -3,6 +3,7 @@ package cc.venja.minebbs.battle.scores;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
@@ -15,8 +16,7 @@ import java.util.*;
 
 
 public class ShowScore {
-    private final ScoreboardManager manager = Bukkit.getScoreboardManager(); // 取得计分板管理器
-    private final Scoreboard scoreboard = manager.getMainScoreboard(); // 新建计分板
+    private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard(); // 新建计分板
 
     public void UpdateScoreboard() throws SQLException {
         if (scoreboard.getObjective("jifenban") == null) {
@@ -24,9 +24,10 @@ public class ShowScore {
         } else {
             BattleMain.instance.scoreboard = scoreboard.getObjective("jifenban");
         }
-
+        assert BattleMain.instance.scoreboard != null;
+        BattleMain.instance.scoreboard.setDisplaySlot(DisplaySlot.SIDEBAR);
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
-        content.add("§2积分前5的玩家");
+        content.add("§2§l积分前5的玩家");
 
         Map<String, Integer> PlayersScores = new TreeMap<>(); //创建玩家积分缓存
         for (PlayerScoreHandle scoreHandle : BattleMain.instance.playerScoreHandleList) {
@@ -36,15 +37,14 @@ public class ShowScore {
         List<Map.Entry<String, Integer>> PlayerList = new ArrayList<>(PlayersScores.entrySet());
         PlayerList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue())); //对玩家缓存进行倒序
 
-        int i = 0;
-        for (Map.Entry<String, Integer> mapping : PlayerList) {
+        for (int i = 0; i < PlayerList.size(); i++) {
             if (i >= 5) {
                 break;
             }
+            Map.Entry<String, Integer> mapping = PlayerList.get(i);
             content.add(PlayerName2TeamColor(mapping.getKey())+mapping.getKey()+": §4"+mapping.getValue());
-            i++;
         }
-        content.add("§2团队总分");
+        content.add("§2§l团队总分");
         Map<String,Integer> TeamScores = new TreeMap<>(); //创建团队积分缓存
         for (TeamScoreHandle scoreHandle : BattleMain.instance.teamScoreHandleList){
             TeamScore scores = scoreHandle.getScore();
@@ -59,6 +59,7 @@ public class ShowScore {
         Collections.reverse(content); //倒序列表
         for (int k = 0; k <= content.size(); k++) {
             Score score = BattleMain.instance.scoreboard.getScore(content.get(k));
+            score.resetScore();
             score.setScore(k);
         }
 
