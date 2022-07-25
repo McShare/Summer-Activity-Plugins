@@ -133,24 +133,28 @@ public class ArenaSystem implements Listener {
                                 vectors.add(strToVector(str));
                             }
                             Vector to = new Vector(p.getLocation().getX(), p.getLocation().getZ(), 0);
-
+                            Vector from = new Vector(lastLocation.get(p).getX(), lastLocation.get(p).getZ(), 0);
                             boolean updateLocation = true;
 
                             String enable = "Enable" + teamStr;
-                            if (configuration.getBoolean(enable)) {//判断是否在队伍区域内
+                            if (configuration.getBoolean(enable)) {
+
                                 if (!p.isOp()) {
+                                    //判断是否在队伍区域内
                                     if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
 
-                                        //判断是否在中央区域内
-                                        if (!GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), to)) {
+                                        //判断是否原先在中央区域内
+                                        if (GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), from)) {
                                             if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
-                                                updateLocation = false;
-                                                new BukkitRunnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        p.teleport(lastLocation.get(p));
-                                                    }
-                                                }.runTask(BattleMain.instance);
+                                                if (!GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), to)) {
+                                                    updateLocation = false;
+                                                    new BukkitRunnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            p.teleport(lastLocation.get(p));
+                                                        }
+                                                    }.runTask(BattleMain.instance);
+                                                }
                                                 Audience.audience(p).sendActionBar(Component.text("§c禁止离开中心区"));
                                             } else {
                                                 // 把玩家送回基地
