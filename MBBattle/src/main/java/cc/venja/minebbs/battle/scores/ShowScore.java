@@ -3,10 +3,7 @@ package cc.venja.minebbs.battle.scores;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.*;
 import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
@@ -20,17 +17,14 @@ import static org.bukkit.Bukkit.getServer;
 public class ShowScore {
     private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard(); // 新建计分板
 
+    private Objective objective = scoreboard.getObjective("jifenban");
+
+
+
     public void UpdateScoreboard() throws SQLException {
-        if (scoreboard.getObjective("jifenban") == null) {
-            BattleMain.instance.scoreboard.unregister();
-            BattleMain.instance.scoreboard = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
-            getServer().getLogger().info("注册了新的计分项");
-        } else {
-            BattleMain.instance.scoreboard = scoreboard.getObjective("jifenban");
-            getServer().getLogger().info("取得了旧的计分项");
+        if (objective == null) {
+            objective = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
         }
-        assert BattleMain.instance.scoreboard != null;
-        BattleMain.instance.scoreboard.setDisplaySlot(DisplaySlot.SIDEBAR);
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
         content.add("§2§l积分前5的玩家");
 
@@ -63,7 +57,7 @@ public class ShowScore {
         }
         Collections.reverse(content); //倒序列表
         for (int k = 0; k <= content.size(); k++) {
-            Score score = BattleMain.instance.scoreboard.getScore(content.get(k));
+            Score score = objective.getScore(content.get(k));
             score.resetScore();
             score.setScore(k);
         }
@@ -71,6 +65,7 @@ public class ShowScore {
         Collection<? extends Player> AllPlayer = Bukkit.getOnlinePlayers(); // 获取玩家在线名单用于发送新的积分榜
         for(Player p:AllPlayer){
             p.setScoreboard(scoreboard);
+            objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         }
     }
 
