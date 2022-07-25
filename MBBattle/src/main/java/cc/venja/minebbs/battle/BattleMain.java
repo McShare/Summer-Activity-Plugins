@@ -158,30 +158,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     }
 
-    /*
-    @EventHandler
-    public void onEntityDamage(EntityDamageByEntityEvent event) throws SQLException {
-        Entity damager = event.getDamager();
-        Entity damagee = event.getEntity();
-        if (damager.getType().equals(EntityType.PLAYER) && damagee.getType().equals(EntityType.PLAYER)) {
-            if (RobotMain.getPlayerTeam(damager.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
-                event.setCancelled(true);
-            }
-            Player pDamager = (Player) damager;
-            Player pDamagee = (Player) damagee;
-            if (event.getFinalDamage() >= pDamagee.getHealth()) {
-                for (PlayerScoreHandle scoreHandle: playerScoreHandleList) {
-                    if (pDamager.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
-                        scoreHandle.onKillPlayer();
-                    }
-                }
-            }
-        }
-    }
-
-
-   */
-
     @EventHandler
     public void onPlayerRespawn(PlayerPostRespawnEvent event) throws SQLException {
         Player player = event.getPlayer();
@@ -279,6 +255,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockDamage(BlockDamageEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("玩家 %s 尝试对 位于 %s 的方块 %s 造成破坏",
+                event.getPlayer().getName(), xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -286,6 +268,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("玩家 %s 尝试对 位于 %s 的方块 %s 造成破坏",
+                event.getPlayer().getName(), xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -293,11 +281,21 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockDestroy(BlockDestroyEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("位于 %s 的方块 %s 受到破坏", xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("位于 %s 的方块 %s 爆炸", xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         List<Block> blocks = event.blockList();
         for (Block block: blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -309,6 +307,11 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("位于 %s 的活塞 %s 尝试推动", xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         List<Block> blocks = event.getBlocks();
         for (Block block: blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -320,6 +323,11 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("位于 %s 的活塞 %s 尝试缩回", xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         List<Block> blocks = event.getBlocks();
         for (Block block: blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -331,6 +339,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("生物 %s 尝试对 位于 %s 的方块 %s 造成破坏",
+                event.getEntity().getType(), xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
@@ -342,6 +356,13 @@ public class BattleMain extends JavaPlugin implements Listener {
                 event.setCancelled(true);
                 break;
             }
+        }
+    }
+
+    @EventHandler
+    public void onBlockSpread(BlockSpreadEvent event) {
+        if (event.getSource().getType().equals(Material.WATER) || event.getSource().getType().equals(Material.LAVA)) {
+            event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
     }
 
@@ -365,6 +386,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
+        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
+                event.getBlock().getY(), event.getBlock().getZ());
+        String warning = String.format("玩家 %s 尝试位于 %s 放置方块 %s",
+                event.getPlayer().getType(), xyz, event.getBlock().getType());
+        this.getLogger().warning(warning);
+
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -704,7 +731,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                                     Team ownerTeamObj = Team.getByName(ownerTeam);
 
                                     if (occupyPercentage == 0.0) {
-                                        if (!section.getString("OccupyTeam").equals("")) {
+                                        if (!Objects.equals(section.getString("OccupyTeam"), "")) {
                                             section.set("OccupyTeam", "");
                                             for (Player player: Bukkit.getOnlinePlayers()) {
                                                 String name = player.getName();
@@ -726,6 +753,10 @@ public class BattleMain extends JavaPlugin implements Listener {
                                                     if (!glass.getType().equals(glassMaterial)) {
                                                         glass.setType(glassMaterial);
                                                     }
+
+                                                    String ownerTeamWithColor = Team.getColorCode(ownerTeamObj) + ownerTeam + "§r";
+                                                    occupyShow.setTitle(String.format("%s 所属队伍: %s", strongholdId, ownerTeamWithColor)
+                                                    );
                                                 }
                                             }
                                         }
@@ -775,6 +806,10 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     private boolean protectAreaOfStrongHold(Block block) {
+        String xyz = String.format("(%s %s %s)", block.getX(), block.getY(), block.getZ());
+        String warning = String.format("正在尝试保护位于 %s 的 方块 %s", xyz, block.getType());
+        this.getLogger().warning(warning);
+
         List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
 
         World world = block.getWorld();
@@ -784,7 +819,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             @SuppressWarnings("unchecked")
             List<Integer> position = (List<Integer>) map.get("Position");
             int x = position.get(0);
-            int y = position.get(1);
+            int y = position.get(1)-1;
             int z = position.get(2);
 
             @SuppressWarnings("unchecked")
@@ -800,21 +835,43 @@ public class BattleMain extends JavaPlugin implements Listener {
             Location minLocation = new Location(world, x, y, z).subtract(xRange, yRange, zRange);
             Location maxLocation = new Location(world, x, y, z).add(xRange, yRange, zRange);
 
+            this.getLogger().warning(String.format("检测据点 %s", map.get("Id")));
+            this.getLogger().warning(String.format("匹配据点 %s X轴", map.get("Id")));
+            this.getLogger().warning(String.format("最大: %s | 中间: %s | 最小: %s | 位于: %s",
+                    maxLocation.getBlockX(), x, minLocation.getBlockX(), location.getBlockX()));
+
             if (location.getBlockX() >= minLocation.getBlockX() && location.getBlockX() <= maxLocation.getBlockX()) {
+                this.getLogger().warning(String.format("匹配据点 %s Y轴", map.get("Id")));
+                this.getLogger().warning(String.format("最大: %s | 中间: %s | 最小: %s | 位于: %s",
+                        maxLocation.getBlockY(), y, minLocation.getBlockY(), location.getBlockY()));
+                
                 if (location.getBlockY() >= minLocation.getBlockY() && location.getBlockY() <= maxLocation.getBlockY()) {
+                    this.getLogger().warning(String.format("匹配据点 %s Z轴", map.get("Id")));
+                    this.getLogger().warning(String.format("最大: %s | 中间: %s | 最小: %s | 位于: %s",
+                            maxLocation.getBlockZ(), z, minLocation.getBlockZ(), location.getBlockZ()));
+                    
                     if (location.getBlockZ() >= minLocation.getBlockZ() && location.getBlockZ() <= maxLocation.getBlockZ()) {
+                        xyz = String.format("(%s %s %s)", block.getX(), block.getY(), block.getZ());
+                        warning = String.format("拦截位于 %s 的 方块 %s 成功", xyz, block.getType());
+                        this.getLogger().warning(warning);
+
                         return true;
                     }
                 }
             }
 
             if (location.getBlockX() == x && location.getBlockZ() == z && location.getBlockY() > y) {
+                this.getLogger().warning("检测方块是否遮挡信标柱");
                 if (block.getBlockData().getMaterial().isOccluding()) {
+                    warning = String.format("拦截位于 %s 的 方块 %s 成功", xyz, block.getType());
+                    this.getLogger().warning(warning);
                     return true;
                 } else {
                     Material material = block.getBlockData().getMaterial();
                     String materialString = block.getBlockData().getMaterial().toString();
                     if (material.equals(Material.TINTED_GLASS) || materialString.contains("STAINED")) {
+                        warning = String.format("拦截位于 %s 的 方块 %s 成功", xyz, block.getType());
+                        this.getLogger().warning(warning);
                         return true;
                     }
                 }
