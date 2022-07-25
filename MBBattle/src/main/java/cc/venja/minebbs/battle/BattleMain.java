@@ -814,9 +814,9 @@ public class BattleMain extends JavaPlugin implements Listener {
         for (Map<?, ?> map : strongholdList) {
             @SuppressWarnings("unchecked")
             List<Integer> position = (List<Integer>) map.get("Position");
-            int x = position.get(0)-1;
+            int x = position.get(0);
             int y = position.get(1)-1;
-            int z = position.get(2)-1;
+            int z = position.get(2);
 
             @SuppressWarnings("unchecked")
             List<Integer> range = (List<Integer>) map.get("ProtectRange");
@@ -832,12 +832,21 @@ public class BattleMain extends JavaPlugin implements Listener {
             Location maxLocation = new Location(world, x, y, z).add(xRange, yRange, zRange);
 
             this.getLogger().warning(String.format("检测据点 %s", map.get("Id")));
+            this.getLogger().warning(String.format("匹配据点 %s X轴", map.get("Id")));
+            this.getLogger().warning(String.format("最大: %s | 中间: %s | 最小: %s | 位于: %s",
+                    maxLocation.getBlockX(), x, minLocation.getBlockX(), location.getBlockX()));
+
             if (location.getBlockX() >= minLocation.getBlockX() && location.getBlockX() <= maxLocation.getBlockX()) {
-                this.getLogger().warning(String.format("匹配据点 %s X轴", map.get("Id")));
+                this.getLogger().warning(String.format("匹配据点 %s Y轴", map.get("Id")));
+                this.getLogger().warning(String.format("最大: %s | 中间: %s | 最小: %s | 位于: %s",
+                        maxLocation.getBlockY(), y, minLocation.getBlockY(), location.getBlockY()));
+                
                 if (location.getBlockY() >= minLocation.getBlockY() && location.getBlockY() <= maxLocation.getBlockY()) {
-                    this.getLogger().warning(String.format("匹配据点 %s Y轴", map.get("Id")));
+                    this.getLogger().warning(String.format("匹配据点 %s Z轴", map.get("Id")));
+                    this.getLogger().warning(String.format("最大: %s | 中间: %s | 最小: %s | 位于: %s",
+                            maxLocation.getBlockZ(), z, minLocation.getBlockZ(), location.getBlockZ()));
+                    
                     if (location.getBlockZ() >= minLocation.getBlockZ() && location.getBlockZ() <= maxLocation.getBlockZ()) {
-                        this.getLogger().warning(String.format("匹配据点 %s Z轴", map.get("Id")));
                         xyz = String.format("(%s %s %s)", block.getX(), block.getY(), block.getZ());
                         warning = String.format("拦截位于 %s 的 方块 %s 成功", xyz, block.getType());
                         this.getLogger().warning(warning);
