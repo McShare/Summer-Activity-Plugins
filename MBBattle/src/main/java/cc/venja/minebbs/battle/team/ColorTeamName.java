@@ -5,6 +5,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.io.File;
+
 public class ColorTeamName {
     public Team red;
     public Team blue;
@@ -14,16 +16,23 @@ public class ColorTeamName {
     public Scoreboard scoreboard;
     public ColorTeamName() {
         scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-        red = scoreboard.registerNewTeam("red");
+        red = registerNewTeamIfNotExist("red");
         red.setPrefix("§c");
-        blue = scoreboard.registerNewTeam("blue");
+        blue = registerNewTeamIfNotExist("blue");
         blue.setPrefix("§9");
-        grey = scoreboard.registerNewTeam("grey");
+        grey = registerNewTeamIfNotExist("grey");
         grey.setPrefix("§7");
-        yellow = scoreboard.registerNewTeam("yellow");
+        yellow = registerNewTeamIfNotExist("yellow");
         yellow.setPrefix("§e");
-        none = scoreboard.registerNewTeam("none");
+        none = registerNewTeamIfNotExist("none");
+    }
 
+    public Team registerNewTeamIfNotExist(String name) {
+        Team team = scoreboard.getTeam(name);
+        if (team != null) {
+            return team;
+        }
+        return scoreboard.registerNewTeam(name);
     }
 
     public Team getTeamByTeamName(String teamName) {
