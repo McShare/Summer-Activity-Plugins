@@ -36,13 +36,12 @@ public class ShowScore {
         List<Map.Entry<String, Integer>> PlayerList = new ArrayList<>(PlayersScores.entrySet());
         PlayerList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue())); //对玩家缓存进行倒序
 
-        int i = 0;
-        for (Map.Entry<String, Integer> mapping : PlayerList) {
+        for (int i = 0; i < PlayerList.size(); i++) {
             if (i >= 5) {
                 break;
             }
+            Map.Entry<String, Integer> mapping = PlayerList.get(i);
             content.add(PlayerName2TeamColor(mapping.getKey())+mapping.getKey()+": §4"+mapping.getValue());
-            i++;
         }
         content.add("§2团队总分");
         Map<String,Integer> TeamScores = new TreeMap<>(); //创建团队积分缓存
