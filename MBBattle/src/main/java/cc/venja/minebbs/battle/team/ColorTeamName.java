@@ -2,6 +2,7 @@ package cc.venja.minebbs.battle.team;
 
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -17,13 +18,13 @@ public class ColorTeamName {
     public ColorTeamName() {
         scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         red = registerNewTeamIfNotExist("red");
-        red.setPrefix("§c");
+        red.setColor(ChatColor.RED);
         blue = registerNewTeamIfNotExist("blue");
-        blue.setPrefix("§9");
+        blue.setColor(ChatColor.BLUE);
         grey = registerNewTeamIfNotExist("grey");
-        grey.setPrefix("§7");
+        grey.setColor(ChatColor.GRAY);
         yellow = registerNewTeamIfNotExist("yellow");
-        yellow.setPrefix("§e");
+        yellow.setColor(ChatColor.YELLOW);
         none = registerNewTeamIfNotExist("none");
     }
 
