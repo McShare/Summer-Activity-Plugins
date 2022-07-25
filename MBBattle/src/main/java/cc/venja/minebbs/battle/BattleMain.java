@@ -40,7 +40,9 @@ import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Objective;
 
+import java.awt.geom.Area;
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -434,7 +436,13 @@ public class BattleMain extends JavaPlugin implements Listener {
 
             if (!joinRecord.contains(name.toLowerCase())) {
                 joinRecord.set(name.toLowerCase(), true);
-                joinRecord.save(joinRecordFile);
+                Bukkit.getScheduler().runTaskAsynchronously(this, ()-> {
+                    try {
+                        joinRecord.save(joinRecordFile);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                });
                 teleportPlayerToTeamBase(player);
             }
 
@@ -511,10 +519,14 @@ public class BattleMain extends JavaPlugin implements Listener {
             } else if (event.beforeStatus.equals(GameStatus.BATTLE_DAY)) {
                 teleportAllPlayerToCorrTeamBase();
                 ArenaSystem.instance.configuration.set("EnablePortal", false);
+                ArenaSystem.instance.configuration.set("CenterAccess", false);
+                ArenaSystem.instance.configuration.set("CenterEnable", false);
                 ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
             } else if (event.nowStatus.equals(GameStatus.BATTLE_DAY)) {
                 teleportAllPlayerToCorrTeamBase();
                 ArenaSystem.instance.configuration.set("EnablePortal", true);
+                ArenaSystem.instance.configuration.set("CenterAccess", true);
+                ArenaSystem.instance.configuration.set("CenterEnable", true);
                 ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
             }
         } catch (Exception e) {
@@ -528,7 +540,7 @@ public class BattleMain extends JavaPlugin implements Listener {
         }
     }
 
-    private void teleportPlayerToTeamBase(Player player) throws Exception {
+    public void teleportPlayerToTeamBase(Player player) throws Exception {
         Team teamValue = RobotMain.getPlayerTeam(player.getName());
         String team = Objects.requireNonNull(teamValue).getName();
 
@@ -541,7 +553,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
         Location respawnLocation = new Location(world, x, y, z);
 
-        player.teleport(respawnLocation);
+        ArenaSystem.forceTeleport(player, respawnLocation);
     }
 
     private void OccupyDetect() {

@@ -133,17 +133,19 @@ public class ArenaSystem implements Listener {
                                 vectors.add(strToVector(str));
                             }
                             Vector to = new Vector(p.getLocation().getX(), p.getLocation().getZ(), 0);
-
+                            Vector from = new Vector(lastLocation.get(p).getX(), lastLocation.get(p).getZ(), 0);
                             boolean updateLocation = true;
 
                             String enable = "Enable" + teamStr;
-                            if (configuration.getBoolean(enable)) {//判断是否在队伍区域内
+                            if (configuration.getBoolean(enable)) {
+
                                 if (!p.isOp()) {
+                                    //判断是否在队伍区域内
                                     if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
 
-                                        //判断是否在中央区域内
-                                        if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
-                                            if (!p.isOp()) {
+                                        //判断是否原先在中央区域内
+                                        if (GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), from)) {
+                                            if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
                                                 if (!GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), to)) {
                                                     updateLocation = false;
                                                     new BukkitRunnable() {
@@ -152,8 +154,12 @@ public class ArenaSystem implements Listener {
                                                             p.teleport(lastLocation.get(p));
                                                         }
                                                     }.runTask(BattleMain.instance);
+
                                                     Audience.audience(p).sendActionBar(Component.text("§c禁止离开中心区"));
                                                 }
+                                            } else {
+                                                // 把玩家送回基地
+                                                BattleMain.instance.teleportPlayerToTeamBase(p);
                                             }
                                         } else {
                                             updateLocation = false;
@@ -171,18 +177,18 @@ public class ArenaSystem implements Listener {
                             }
 
 
-
                             if (updateLocation) {
                                 lastLocation.put(p, p.getLocation());
                             }
                         }
                     }
-                } catch (SQLException e) {
-                    BattleMain.instance.getLogger().warning(e.toString());
+                } catch (Exception exception) {
+                    exception.printStackTrace();
                 }
             }
         }.runTaskTimerAsynchronously(BattleMain.instance, 0L, 0L);
     }
+
 
     @EventHandler
     public void onEntityMove(ProjectileHitEvent event) throws SQLException {
@@ -225,19 +231,19 @@ public class ArenaSystem implements Listener {
         int x = (int) loc.getX();
         int z = (int) loc.getZ();
 
-        if (Objects.equals(TeamStr, "TeamRED")){
-            if (x == 1848 && Math.max(330,z) == Math.min(z,336)) {
-                event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
-                Location toLoc = new Location(event.getWorld(), 1075,71,925);
-                runSync(() -> event.teleport(toLoc));
+        if (Objects.equals(TeamStr, "TeamRED")) {
+            if (x == 1848 && Math.max(330, z) == Math.min(z, 336)) {
+                event.playSound(event, BLOCK_END_PORTAL_SPAWN, 1F, 0F);
+                Location toLoc = new Location(event.getWorld(), 1075, 71, 925);
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
-            }
+        }
         if (Objects.equals(TeamStr, "TeamBLUE")){
             if (x == 374 && Math.max(328,z) == Math.min(z,334)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 895,71,1090);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
@@ -245,7 +251,7 @@ public class ArenaSystem implements Listener {
             if (x == 1730 && Math.max(1707,z) == Math.min(z,1713)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1260,69,1045);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
@@ -253,7 +259,7 @@ public class ArenaSystem implements Listener {
             if (x == 294 && Math.max(1577,z) == Math.min(z,1581)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1140,97,1220);
-                runSync(() -> event.teleport(toLoc));
+                runSync(() -> forceTeleport(event, toLoc));
                 return true;
             }
         }
@@ -266,6 +272,11 @@ public class ArenaSystem implements Listener {
 
     private double distance(Vector v1, Vector v2) {
         return Math.sqrt(NumberConversions.square(v1.getX() - v2.getX()) + NumberConversions.square(v1.getY() - v2.getY()));
+    }
+
+    public static void forceTeleport(Player p, Location loc) {
+        lastLocation.put(p, loc);
+        p.teleport(loc);
     }
 
     private void runSync(Runnable runnable) {
