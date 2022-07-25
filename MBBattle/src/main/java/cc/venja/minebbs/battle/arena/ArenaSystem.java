@@ -105,6 +105,11 @@ public class ArenaSystem implements Listener {
     }
 
     public void runPlayerDetectionTask() {
+        List<String> CenterVectorStr = configuration.getStringList("CenterArea");
+        List<Vector> CenterVectors = new ArrayList<>();
+        for (String str : CenterVectorStr) {
+            CenterVectors.add(strToVector(str));
+        }
         //提前加载中心区域范围
 
         new BukkitRunnable() {
@@ -138,11 +143,6 @@ public class ArenaSystem implements Listener {
 
                                         //判断是否在中央区域内
                                         if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
-                                            List<String> CenterVectorStr = configuration.getStringList("CenterArea");
-                                            List<Vector> CenterVectors = new ArrayList<>();
-                                            for (String str : CenterVectorStr) {
-                                                CenterVectors.add(strToVector(str));
-                                            }
                                             if (!p.isOp()) {
                                                 if (!GFG.isInside(CenterVectors.toArray(Vector[]::new), CenterVectors.size(), to)) {
                                                     updateLocation = false;
@@ -228,7 +228,7 @@ public class ArenaSystem implements Listener {
         if (Objects.equals(TeamStr, "TeamRED")){
             if (x == 1848 && Math.max(330,z) == Math.min(z,336)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
-                Location toLoc = new Location(event.getWorld(), 1103,73,918);
+                Location toLoc = new Location(event.getWorld(), 1075,71,925);
                 runSync(() -> event.teleport(toLoc));
                 return true;
             }
@@ -236,7 +236,7 @@ public class ArenaSystem implements Listener {
         if (Objects.equals(TeamStr, "TeamBLUE")){
             if (x == 374 && Math.max(328,z) == Math.min(z,334)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
-                Location toLoc = new Location(event.getWorld(), 913,77,1108);
+                Location toLoc = new Location(event.getWorld(), 895,71,1090);
                 runSync(() -> event.teleport(toLoc));
                 return true;
             }
@@ -244,7 +244,7 @@ public class ArenaSystem implements Listener {
         if (Objects.equals(TeamStr, "TeamGREY")){
             if (x == 1730 && Math.max(1707,z) == Math.min(z,1713)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
-                Location toLoc = new Location(event.getWorld(), 1293,90,1108);
+                Location toLoc = new Location(event.getWorld(), 1260,69,1045);
                 runSync(() -> event.teleport(toLoc));
                 return true;
             }
@@ -252,7 +252,7 @@ public class ArenaSystem implements Listener {
         if (Objects.equals(TeamStr, "TeamYELLOW")){
             if (x == 294 && Math.max(1577,z) == Math.min(z,1581)) {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
-                Location toLoc = new Location(event.getWorld(), 1103,109,1298);
+                Location toLoc = new Location(event.getWorld(), 1140,97,1220);
                 runSync(() -> event.teleport(toLoc));
                 return true;
             }
