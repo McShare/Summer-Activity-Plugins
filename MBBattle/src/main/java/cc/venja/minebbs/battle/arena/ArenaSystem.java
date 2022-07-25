@@ -157,17 +157,17 @@ public class ArenaSystem implements Listener {
                                                 BattleMain.instance.teleportPlayerToTeamBase(p);
                                             }
 
-                                        }
-                                    } else {
-                                        updateLocation = false;
-                                        new BukkitRunnable() {
-                                            @Override
-                                            public void run() {
-                                                p.teleport(lastLocation.get(p));
-                                            }
+                                        } else {
+                                            updateLocation = false;
+                                            new BukkitRunnable() {
+                                                @Override
+                                                public void run() {
+                                                    p.teleport(lastLocation.get(p));
+                                                }
 
-                                        }.runTask(BattleMain.instance);
-                                        Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                                            }.runTask(BattleMain.instance);
+                                            Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                                        }
                                     }
                                 }
                             }
