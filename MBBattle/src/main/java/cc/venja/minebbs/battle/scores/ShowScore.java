@@ -15,16 +15,14 @@ import static org.bukkit.Bukkit.getServer;
 
 
 public class ShowScore {
-    private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard(); // 新建计分板
-
-    private Objective objective = scoreboard.getObjective("jifenban");
-
-
-
     public void UpdateScoreboard() throws SQLException {
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard(); // 取得服务器管理的计分板
+        Objective objective = scoreboard.getObjective("jifenban");
         if (objective == null) {
+            getServer().broadcast(Component.text("[DEBUG] 计分项为空"));
             objective = scoreboard.registerNewObjective("jifenban", "dummy", Component.text("§l积分榜"));
         }
+
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
         content.add("§2§l积分前5的玩家");
 
