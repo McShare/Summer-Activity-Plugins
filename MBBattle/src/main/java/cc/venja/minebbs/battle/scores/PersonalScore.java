@@ -3,6 +3,9 @@ package cc.venja.minebbs.battle.scores;
 import cc.venja.minebbs.battle.BattleMain;
 import org.bukkit.entity.Player;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+
 
 public class PersonalScore {
     Player player;
@@ -40,9 +43,11 @@ public class PersonalScore {
         ShowScore show = new ShowScore();
         show.UpdateScoreboard();
 
+        BattleMain.instance.personalCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.personalCsvFile));
         BattleMain.instance.personalCsvWriter.newLine();
         BattleMain.instance.personalCsvWriter.write(String.format("%s,%s,%s", playerName, score, reason));
         BattleMain.instance.personalCsvWriter.flush();
+        BattleMain.instance.personalCsvWriter.close();
     }
 
     public void add(int score, String reason) throws Exception {

@@ -3,6 +3,9 @@ package cc.venja.minebbs.battle.scores;
 import cc.venja.minebbs.battle.BattleMain;
 import cc.venja.minebbs.login.enums.Team;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+
 public class TeamScore {
     public Team getTeam() {
         return team;
@@ -36,9 +39,11 @@ public class TeamScore {
         ShowScore show = new ShowScore();
         show.UpdateScoreboard();
 
+        BattleMain.instance.teamCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.teamCsvFile));
         BattleMain.instance.teamCsvWriter.newLine();
         BattleMain.instance.teamCsvWriter.write(String.format("%s,%s,%s", team.getName(), score, reason));
         BattleMain.instance.teamCsvWriter.flush();
+        BattleMain.instance.teamCsvWriter.close();
     }
 
     public void add(int score, String reason) throws Exception {
