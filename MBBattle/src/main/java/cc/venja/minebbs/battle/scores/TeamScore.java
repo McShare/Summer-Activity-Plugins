@@ -5,6 +5,8 @@ import cc.venja.minebbs.login.enums.Team;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class TeamScore {
     public Team getTeam() {
@@ -38,16 +40,14 @@ public class TeamScore {
 
         ShowScore show = new ShowScore();
         show.UpdateScoreboard();
-
-        BattleMain.instance.teamCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.teamCsvFile));
-        BattleMain.instance.teamCsvWriter.newLine();
-        BattleMain.instance.teamCsvWriter.write(String.format("%s,%s,%s", team.getName(), score, reason));
-        BattleMain.instance.teamCsvWriter.flush();
-        BattleMain.instance.teamCsvWriter.close();
     }
 
     public void add(int score, String reason) throws Exception {
         this.set(BattleMain.teamScore.getInt(team.getName())+score, reason);
+
+        //记录团队从何处获得积分
+        BattleMain.instance.teamCsvWriter.write(String.format("%s,%s,%s,%s\n", team.getName(), score, reason, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        BattleMain.instance.teamCsvWriter.flush();
     }
 
     public void deduct(int score, String reason) throws Exception {

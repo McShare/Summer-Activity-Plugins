@@ -92,11 +92,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        //注册指令
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
         Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus-change")).setExecutor(new GameStatusChange());
         Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus")).setExecutor(new GameStatusGet());
         Objects.requireNonNull(this.getServer().getPluginCommand("arena")).setExecutor(new ArenaManageCommand());
-
+        //初始化配置文件
         try {
             configFile = new File(this.getDataFolder().toPath().resolve("config.yml").toString()).getAbsoluteFile();
             var configExists = configFile.exists();
@@ -132,7 +133,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
 
             configuration.save(configFile);
-
+            //初始化数据文件
             dataFile = new File(this.getDataFolder().toPath().resolve("data.yml").toString()).getAbsoluteFile();
             var dataExists = configFile.exists();
             data = YamlConfiguration.loadConfiguration(dataFile);
@@ -141,19 +142,19 @@ public class BattleMain extends JavaPlugin implements Listener {
                 data.set("status", GameStatus.PEACETIME.getValue());
                 data.save(dataFile);
             }
-
+            //初始化队伍计分文件
             teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team.yml").toString()).getAbsoluteFile();
             teamScore = YamlConfiguration.loadConfiguration(teamScoreFile);
-
+            //初始化个人积分文件
             personalScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal.yml").toString()).getAbsoluteFile();
             personalScore = YamlConfiguration.loadConfiguration(personalScoreFile);
-
+            //初始化进服记录文件
             joinRecordFile = new File(this.getDataFolder().toPath().resolve("record.yml").toString()).getAbsoluteFile();
             joinRecord = YamlConfiguration.loadConfiguration(joinRecordFile);
-
+            //初始化个人积分变更日志文件
             personalCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal_record.csv").toString()).getAbsoluteFile();
             personalCsvWriter = new BufferedWriter(new FileWriter(personalCsvFile));
-
+            //初始化团队积分变更日志文件
             teamCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team_record.csv").toString()).getAbsoluteFile();
             teamCsvWriter = new BufferedWriter(new FileWriter(teamCsvFile));
 
@@ -170,6 +171,26 @@ public class BattleMain extends JavaPlugin implements Listener {
             colorTeamName = new ColorTeamName();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        try {
+            //注意需开启文件续写功能
+            teamCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.teamCsvFile,true));
+            personalCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.personalCsvFile,true));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public void onDisable() {
+        //关闭csv积分日志文件
+        try {
+            teamCsvWriter.close();
+            personalCsvWriter.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }

@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 public class PersonalScore {
@@ -42,16 +44,13 @@ public class PersonalScore {
 
         ShowScore show = new ShowScore();
         show.UpdateScoreboard();
-
-        BattleMain.instance.personalCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.personalCsvFile));
-        BattleMain.instance.personalCsvWriter.newLine();
-        BattleMain.instance.personalCsvWriter.write(String.format("%s,%s,%s", playerName, score, reason));
-        BattleMain.instance.personalCsvWriter.flush();
-        BattleMain.instance.personalCsvWriter.close();
     }
 
     public void add(int score, String reason) throws Exception {
         this.set(BattleMain.personalScore.getInt(playerName)+score, reason);
+        //记录玩家从何获得加分
+        BattleMain.instance.personalCsvWriter.write(String.format("%s,%s,%s,%s\n", playerName, score, reason, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        BattleMain.instance.personalCsvWriter.flush();
     }
 
     public void deduct(int score, String reason) throws Exception {
