@@ -10,6 +10,7 @@ import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
 import cc.venja.minebbs.battle.scores.PlayerScoreHandle;
 import cc.venja.minebbs.battle.scores.ShowScore;
 import cc.venja.minebbs.battle.scores.TeamScoreHandle;
+import cc.venja.minebbs.battle.team.ChatSystem;
 import cc.venja.minebbs.battle.team.ColorTeamName;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
@@ -26,10 +27,7 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
@@ -41,7 +39,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.util.Vector;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -73,6 +73,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     public static File joinRecordFile;
     public static YamlConfiguration joinRecord;
 
+    public Map<Player, Player> lastAttacker = new HashMap<>();
     public Map<String, List<Player>> occupies = new HashMap<>();
 
     public ColorTeamName colorTeamName;
@@ -159,7 +160,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             teamCsvWriter = new BufferedWriter(new FileWriter(teamCsvFile));
 
             this.getServer().getPluginManager().registerEvents(this, this);
-
+            this.getServer().getPluginManager().registerEvents(new ChatSystem(), this);
             arenaSystem = new ArenaSystem();
 
             teamScoreHandleList.add(new TeamScoreHandle(Team.RED));
@@ -394,6 +395,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
 
+        Player player = event.getPlayer();
         for (Map<?, ?> stronghold : strongholdList) {
             String strongholdId = stronghold.get("Id").toString();
 
@@ -404,6 +406,17 @@ public class BattleMain extends JavaPlugin implements Listener {
                 if (player1.getName().equals(event.getPlayer().getName())) {
                     occupyPlayers.remove(i);
                     i -= 1;
+                }
+            }
+        }
+
+        if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
+            if (arenaSystem.isInCenter(new Vector(player.getLocation().getX(), player.getLocation().getZ(), 0))) {
+                if (player.getHealth() < 14) {
+                    if (lastAttacker.containsKey(player)) {
+                        player.damage(114514, lastAttacker.get(player));
+                        lastAttacker.remove(player);
+                    }
                 }
             }
         }
@@ -891,16 +904,31 @@ public class BattleMain extends JavaPlugin implements Listener {
         if (damager.getType().equals(EntityType.PLAYER) && damagee.getType().equals(EntityType.PLAYER)) {
             if (RobotMain.getPlayerTeam(damager.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
                 event.setCancelled(true);
+            } else {
+                setLastAttacker((Player)damagee, (Player)damager);
             }
         } else if (damagee.getType().equals(EntityType.PLAYER) && damager instanceof Projectile projectile) {
             if (projectile.getShooter() != null) {
                 if (projectile.getShooter() instanceof Player p) {
                     if (RobotMain.getPlayerTeam(p.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
                         event.setCancelled(true);
+                    } else {
+                        setLastAttacker((Player) damagee, p);
                     }
                 }
             }
         }
     }
 
+
+    public void setLastAttacker(Player victim, Player attacker) {
+        lastAttacker.put(victim, attacker);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                lastAttacker.remove(victim);
+            }
+        }.runTaskLater(this, 300);
+
+    }
 }

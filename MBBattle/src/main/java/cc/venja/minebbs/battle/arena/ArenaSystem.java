@@ -164,6 +164,7 @@ public class ArenaSystem implements Listener {
                                             } else {
                                                 // 把玩家送回基地
                                                 BattleMain.instance.teleportPlayerToTeamBase(p);
+                                                continue;
                                             }
                                         }
                                     }
