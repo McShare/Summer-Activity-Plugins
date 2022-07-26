@@ -46,7 +46,10 @@ public class TeamScore {
         this.set(BattleMain.teamScore.getInt(team.getName())+score, reason);
 
         //记录团队从何处获得积分
-        BattleMain.instance.teamCsvWriter.write(String.format("%s,%s,%s,%s\n", team.getName(), score, reason, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        if (BattleMain.instance.teamCsvFile.length()==0){
+            BattleMain.instance.teamCsvWriter.write("队名,分数,原因,时间\n");
+        }
+        BattleMain.instance.teamCsvWriter.write(team.getName()+","+ score+","+ reason+"," +LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+"\n");
         BattleMain.instance.teamCsvWriter.flush();
     }
 

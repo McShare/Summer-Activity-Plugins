@@ -49,7 +49,10 @@ public class PersonalScore {
     public void add(int score, String reason) throws Exception {
         this.set(BattleMain.personalScore.getInt(playerName)+score, reason);
         //记录玩家从何获得加分
-        BattleMain.instance.personalCsvWriter.write(String.format("%s,%s,%s,%s\n", playerName, score, reason, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        if(BattleMain.instance.personalCsvFile.length() == 0){
+            BattleMain.instance.personalCsvWriter.write("玩家名,分数,原因,时间\n");
+        }
+        BattleMain.instance.personalCsvWriter.write(playerName+","+score+","+reason+","+LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+"\n");
         BattleMain.instance.personalCsvWriter.flush();
     }
 
