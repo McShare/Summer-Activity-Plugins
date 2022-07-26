@@ -107,6 +107,7 @@ public class ArenaSystem implements Listener {
         configuration.save(configFile);
     }
 
+    //异步玩家越界检测
     public void runPlayerDetectionTask() {
         List<String> CenterVectorStr = configuration.getStringList("CenterArea");
         List<Vector> CenterVectors = new ArrayList<>();
@@ -193,7 +194,7 @@ public class ArenaSystem implements Listener {
         }.runTaskTimerAsynchronously(BattleMain.instance, 0L, 0L);
     }
 
-
+//投掷物是否超越活动范围
     @EventHandler
     public void onEntityMove(ProjectileHitEvent event) throws SQLException {
         if (event.getEntity().getShooter() instanceof Player player) {
@@ -226,12 +227,14 @@ public class ArenaSystem implements Listener {
         }
     }
 
+    //是否在中心区
     public boolean isInCenter(Vector vector) {
         Vector center = new Vector(1103,1093, 0);
         return (distance(center, vector) < 210);
 
     }
 
+    //玩家是否进入传送门
     public boolean isPlayerEnterPortal(String TeamStr, Player event) {
         if (!configuration.getBoolean("EnablePortal")){
             return false;
@@ -288,15 +291,18 @@ public class ArenaSystem implements Listener {
         return new Vector(Integer.parseInt(str.split(",")[0]), Integer.parseInt(str.split(",")[1]), 0);
     }
 
+    //计算两点之间距离
     private double distance(Vector v1, Vector v2) {
         return Math.sqrt(NumberConversions.square(v1.getX() - v2.getX()) + NumberConversions.square(v1.getY() - v2.getY()));
     }
 
+//强制传送
     public static void forceTeleport(Player p, Location loc) {
         lastLocation.put(p, loc);
         p.teleport(loc);
     }
 
+    //同步运行
     private void runSync(Runnable runnable) {
         Bukkit.getScheduler().runTask(BattleMain.instance, runnable);
     }
