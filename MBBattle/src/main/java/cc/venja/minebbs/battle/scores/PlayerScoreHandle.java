@@ -15,19 +15,11 @@ public class PlayerScoreHandle {
         this.score = new PersonalScore(player);
     }
 
-    public void onPlayerDeath() {
-        try {
-            score.deduct(5);
-        } catch (Exception e) {
-            Bukkit.getLogger().warning(e.toString());
-        }
+    public void addScoreByKillOtherPlayer() throws Exception {
+        this.score.add(10, "Kill Player");
     }
 
-    public void onKillPlayer() {
-        try {
-            score.add(10);
-        } catch (Exception e) {
-            Bukkit.getLogger().warning(e.toString());
-        }
+    public void deductScoreByDeath() throws Exception {
+        this.score.deduct(5, "Player Death");
     }
 }

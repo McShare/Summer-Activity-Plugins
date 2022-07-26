@@ -33,21 +33,24 @@ public class PersonalScore {
         saveScoreToFile();
     }
 
-    public void set(int score) throws Exception {
+    public void set(int score, String reason) throws Exception {
         BattleMain.personalScore.set(playerName, score);
         saveScoreToFile();
-    }
 
-    public void add(int score) throws Exception {
-        this.set(BattleMain.personalScore.getInt(playerName)+score);
         ShowScore show = new ShowScore();
         show.UpdateScoreboard();
+
+        BattleMain.instance.personalCsvWriter.newLine();
+        BattleMain.instance.personalCsvWriter.write(String.format("%s,%s,%s", playerName, score, reason));
+        BattleMain.instance.personalCsvWriter.flush();
     }
 
-    public void deduct(int score) throws Exception {
-        this.set(BattleMain.personalScore.getInt(playerName)-score);
-        ShowScore show = new ShowScore();
-        show.UpdateScoreboard();
+    public void add(int score, String reason) throws Exception {
+        this.set(BattleMain.personalScore.getInt(playerName)+score, reason);
+    }
+
+    public void deduct(int score, String reason) throws Exception {
+        this.set(BattleMain.personalScore.getInt(playerName)-score, reason);
     }
 
     private void saveScoreToFile() throws Exception {

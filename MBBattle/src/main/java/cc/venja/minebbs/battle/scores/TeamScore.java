@@ -29,19 +29,24 @@ public class TeamScore {
         return BattleMain.teamScore.getInt(team.getName());
     }
 
-    public void set(int score) throws Exception {
+    public void set(int score, String reason) throws Exception {
         BattleMain.teamScore.set(team.getName(), score);
         saveScoreToFile();
+
         ShowScore show = new ShowScore();
         show.UpdateScoreboard();
+
+        BattleMain.instance.teamCsvWriter.newLine();
+        BattleMain.instance.teamCsvWriter.write(String.format("%s,%s,%s", team.getName(), score, reason));
+        BattleMain.instance.teamCsvWriter.flush();
     }
 
-    public void add(int score) throws Exception {
-        this.set(BattleMain.teamScore.getInt(team.getName())+score);
+    public void add(int score, String reason) throws Exception {
+        this.set(BattleMain.teamScore.getInt(team.getName())+score, reason);
     }
 
-    public void deduct(int score) throws Exception {
-        this.set(BattleMain.teamScore.getInt(team.getName())-score);
+    public void deduct(int score, String reason) throws Exception {
+        this.set(BattleMain.teamScore.getInt(team.getName())-score, reason);
     }
 
     private void saveScoreToFile() throws Exception {

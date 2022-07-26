@@ -179,45 +179,6 @@ public class ArenaSystem implements Listener {
                                             Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
                                         }
                                     }
-                                   /*
-                                    // 判断是否在队伍区域内
-                                    if (!GFG.isInside(vectors.toArray(Vector[]::new), vectors.size(), to)) {
-
-                                        // 判断是否原先在中央区域内
-                                        if (isInCenter(from)) {
-                                            if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
-                                                if (!isInCenter(to)) {
-                                                    updateLocation = false;
-                                                    new BukkitRunnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            p.teleport(lastLocation.get(p));
-                                                        }
-                                                    }.runTask(BattleMain.instance);
-
-                                                    Audience.audience(p).sendActionBar(Component.text("§c禁止离开中心区"));
-                                                }
-                                            } else {
-                                                // 把玩家送回基地
-                                                BattleMain.instance.teleportPlayerToTeamBase(p);
-                                            }
-                                        } else {
-                                            updateLocation = false;
-                                            new BukkitRunnable() {
-                                                @Override
-                                                public void run() {
-                                                    p.teleport(lastLocation.get(p));
-                                                }
-
-                                            }.runTask(BattleMain.instance);
-                                            Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
-                                        }
-                                    }
-                                }
-
-
-                                    */
-
                                 }
                             }
                             if (updateLocation) {

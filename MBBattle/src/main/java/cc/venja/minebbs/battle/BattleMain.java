@@ -43,7 +43,9 @@ import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Objective;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
@@ -80,9 +82,13 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public static GameStatus status;
 
-    public Objective scoreboard;
-
     public World world;
+
+    public File personalCsvFile;
+    public BufferedWriter personalCsvWriter;
+
+    public File teamCsvFile;
+    public BufferedWriter teamCsvWriter;
 
     @Override
     public void onEnable() {
@@ -144,6 +150,12 @@ public class BattleMain extends JavaPlugin implements Listener {
 
             joinRecordFile = new File(this.getDataFolder().toPath().resolve("record.yml").toString()).getAbsoluteFile();
             joinRecord = YamlConfiguration.loadConfiguration(joinRecordFile);
+
+            personalCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal_record.csv").toString()).getAbsoluteFile();
+            personalCsvWriter = new BufferedWriter(new FileWriter(personalCsvFile));
+
+            teamCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team_record.csv").toString()).getAbsoluteFile();
+            teamCsvWriter = new BufferedWriter(new FileWriter(teamCsvFile));
 
             this.getServer().getPluginManager().registerEvents(this, this);
 
@@ -259,13 +271,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockDamage(BlockDamageEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("玩家 %s 尝试对 位于 %s 的方块 %s 造成破坏",
-                event.getPlayer().getName(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -273,13 +278,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("玩家 %s 尝试对 位于 %s 的方块 %s 造成破坏",
-                event.getPlayer().getName(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -287,24 +285,11 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockDestroy(BlockDestroyEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的方块 %s 受到破坏", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-
-        */
         event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的方块 %s 爆炸", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-         */
         List<Block> blocks = event.blockList();
         for (Block block : blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -316,12 +301,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPistonExtend(BlockPistonExtendEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的活塞 %s 尝试推动", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-         */
         List<Block> blocks = event.getBlocks();
         for (Block block : blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -333,12 +312,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的活塞 %s 尝试缩回", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         List<Block> blocks = event.getBlocks();
         for (Block block : blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -350,13 +323,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("生物 %s 尝试对 位于 %s 的方块 %s 造成破坏",
-                event.getEntity().getType(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
@@ -379,18 +345,18 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void onPlayerDeath(PlayerDeathEvent event) throws Exception {
         Player player = event.getPlayer();
         for (PlayerScoreHandle scoreHandle : playerScoreHandleList) {
             if (player.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
-                scoreHandle.onPlayerDeath();
+                scoreHandle.deductScoreByDeath();
             }
         }
         if (player.getKiller() != null) {
             Player killer = player.getKiller();
             for (PlayerScoreHandle scoreHandle : playerScoreHandleList) {
                 if (killer.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
-                    scoreHandle.onKillPlayer();
+                    scoreHandle.addScoreByKillOtherPlayer();
                 }
             }
         }
@@ -398,13 +364,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("玩家 %s 尝试位于 %s 放置方块 %s",
-                event.getPlayer().getType(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -516,9 +475,9 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                                 for (TeamScoreHandle scoreHandle : teamScoreHandleList) {
                                     if (scoreHandle.getScore().getTeam().equals(owner)) {
-                                        scoreHandle.getScore().deduct(40);
+                                        scoreHandle.deductScoreByStrongHoldOccupied();
                                     } else if (scoreHandle.getScore().getTeam().equals(occupier)) {
-                                        scoreHandle.getScore().add(50);
+                                        scoreHandle.addScoreByOccupyStrongHold();
                                     }
                                 }
                             }
@@ -817,7 +776,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                             for (TeamScoreHandle scoreHandle : teamScoreHandleList) {
                                 if (scoreHandle.getScore().getTeam().equals(occupier)) {
-                                    scoreHandle.getScore().add(1);
+                                    scoreHandle.addScoreByMidPointOccupy();
                                 }
                             }
                         }
