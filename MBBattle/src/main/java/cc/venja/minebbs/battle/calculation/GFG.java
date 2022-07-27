@@ -1,6 +1,10 @@
 package cc.venja.minebbs.battle.calculation;
 
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.util.Vector;
+
+import static org.bukkit.Bukkit.getServer;
 
 public class GFG
 {
@@ -111,7 +115,7 @@ public class GFG
                 // If the point 'p' is collinear with line
                 // segment 'i-next', then check if it lies
                 // on segment. If it lies, return true, otherwise false
-                if (orientation(polygon[i], p, polygon[next]) == 0)
+                if (orientation(polygon[i], p, polygon[next]) == 0) //玩家xz是否与墙xz相交
                 {
                     return onSegment(polygon[i], p,
                                     polygon[next]);

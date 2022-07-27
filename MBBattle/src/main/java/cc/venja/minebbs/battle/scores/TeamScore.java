@@ -38,19 +38,20 @@ public class TeamScore {
         BattleMain.teamScore.set(team.getName(), score);
         saveScoreToFile();
 
+        //记录团队从何处获得积分
+        if (BattleMain.instance.teamCsvFile.length()==0){
+            BattleMain.instance.teamCsvWriter.write("队名,分数,原因,时间\n");
+            BattleMain.instance.teamCsvWriter.flush();
+        }
+        BattleMain.instance.teamCsvWriter.write(team.getName()+","+ score+","+ reason+"," +LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+"\n");
+        BattleMain.instance.teamCsvWriter.flush();
         ShowScore show = new ShowScore();
+
         show.UpdateScoreboard();
     }
 
     public void add(int score, String reason) throws Exception {
         this.set(BattleMain.teamScore.getInt(team.getName())+score, reason);
-
-        //记录团队从何处获得积分
-        if (BattleMain.instance.teamCsvFile.length()==0){
-            BattleMain.instance.teamCsvWriter.write("队名,分数,原因,时间\n");
-        }
-        BattleMain.instance.teamCsvWriter.write(team.getName()+","+ score+","+ reason+"," +LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+"\n");
-        BattleMain.instance.teamCsvWriter.flush();
     }
 
     public void deduct(int score, String reason) throws Exception {

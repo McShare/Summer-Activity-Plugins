@@ -178,7 +178,7 @@ public class ArenaSystem implements Listener {
                                                 }
 
                                             }.runTask(BattleMain.instance);
-                                            Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围-正在被"+teamStr+"所属边界阻止"));
+                                             Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
                                         }
                                     }
                                 }

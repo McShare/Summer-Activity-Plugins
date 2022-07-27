@@ -16,15 +16,13 @@ import static org.bukkit.Bukkit.getServer;
 
 public class ShowScore {
     public void UpdateScoreboard() throws SQLException {
-        Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard(); // 取得新计分板
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard(); // 取得新计分板
         Objective objective = scoreboard.getObjective("ranking"); //尝试取得旧的计分项
-        if (objective != null){
-            //在找到新的计分项内容替换方案前，如果旧计分项存在清空分数。该方法可能造成计分板频闪
-            scoreboard.resetScores("ranking");
-        }else{
-            objective = scoreboard.registerNewObjective("ranking", "dummy", Component.text("§l积分榜"));
+        if(objective != null){
+            objective.unregister();
         }
-
+        objective = scoreboard.registerNewObjective("ranking", "dummy", Component.text("§l积分榜"));
+        
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
         content.add("§2§l积分前5的玩家");
 
@@ -57,8 +55,8 @@ public class ShowScore {
         }
         Collections.reverse(content); //倒序列表
         for (int k = 0; k <= content.size(); k++) {
-            Score score = objective.getScore(content.get(k));
-            score.resetScore();
+            Score score = objective.getScore(content.get(k-1));
+            scoreboard.resetScores(score.getEntry()); //先移除
             score.setScore(k);
         }
 
