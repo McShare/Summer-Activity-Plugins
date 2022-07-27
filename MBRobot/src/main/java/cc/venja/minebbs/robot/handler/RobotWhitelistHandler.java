@@ -9,8 +9,6 @@ import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.Objects;
 
 public class RobotWhitelistHandler implements HttpHandler {
 
@@ -27,12 +25,13 @@ public class RobotWhitelistHandler implements HttpHandler {
             if (playerDao.isValid()) {
                 RobotMain.addWhitelist(playerDao.playerName, playerDao.KHL);
                 respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
-                try {
-                    RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue(), playerDao.KHL);
-                    respondDao.respondData = String.valueOf(Objects.requireNonNull(RobotMain.getPlayerTeam(playerDao.playerName)).getValue());
-                } catch (SQLException e) {
-                    Bukkit.getLogger().info(e.toString());
-                }
+//                try {
+//                    RobotMain.addPlayerTeam(playerDao.playerName, RobotMain.getLowestMemberTeam().getValue(), playerDao.KHL);
+//                    respondDao.respondData = String.valueOf(Objects.requireNonNull(RobotMain.getPlayerTeam(playerDao.playerName)).getValue());
+//                } catch (SQLException e) {
+//                    Bukkit.getLogger().info(e.toString());
+//                }
+                respondDao.respondData = "Success";
             } else {
                 respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
                 respondDao.respondData = "POST Body invalid";
