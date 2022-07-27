@@ -46,7 +46,7 @@ public class GFG
     public static boolean doIntersect(Vector p1, Vector q1,
                             Vector p2, Vector q2)
     {
-        // Find the four orientations needed for
+        // 找到四个角
         // general and special cases
         int o1 = orientation(p1, q1, p2);
         int o2 = orientation(p1, q1, q2);
@@ -58,37 +58,34 @@ public class GFG
         {
             return true;
         }
- 
-        // Special Cases
-        // p1, q1 and p2 are collinear and
-        // p2 lies on segment p1q1
+
+        // 特别情况
+        // p1、q1 和 p2 共线且
+        // p2 位于段 p1q1
         if (o1 == 0 && onSegment(p1, p2, q1))
         {
             return true;
         }
- 
-        // p1, q1 and p2 are collinear and
-        // q2 lies on segment p1q1
+
+        // p1、q1 和 p2 共线且
+        // q2 位于段 p1q1
         if (o2 == 0 && onSegment(p1, q2, q1))
         {
             return true;
         }
- 
-        // p2, q2 and p1 are collinear and
-        // p1 lies on segment p2q2
+
+        // p1、q1 和 p2 共线且
+        // p1 位于段 p1q1
         if (o3 == 0 && onSegment(p2, p1, q2))
         {
             return true;
         }
- 
-        // p2, q2 and q1 are collinear and
-        // q1 lies on segment p2q2
-        // Doesn't fall in any of the above cases
+
+        // p2, q2 和 q1 是共线的并且q1 位于段 p2q2 不属于上述任何一种情况
         return o4 == 0 && onSegment(p2, q1, q2);
     }
- 
-    // Returns true if the point p lies
-    // inside the polygon[] with n vertices
+
+    // 如果点 p 位于具有 n 个顶点的多边形[] 内，则返回 true
     public static boolean isInside(Vector[] polygon, int n, Vector p)
     {
         // There must be at least 3 vertices in polygon[]
