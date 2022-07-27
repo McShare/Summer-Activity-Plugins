@@ -156,10 +156,10 @@ public class BattleMain extends JavaPlugin implements Listener {
             joinRecord = YamlConfiguration.loadConfiguration(joinRecordFile);
             //初始化个人积分变更日志文件
             personalCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal_record.csv").toString()).getAbsoluteFile();
-            personalCsvWriter = new BufferedWriter(new FileWriter(personalCsvFile));
+            personalCsvWriter = new BufferedWriter(new FileWriter(personalCsvFile,true));
             //初始化团队积分变更日志文件
             teamCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team_record.csv").toString()).getAbsoluteFile();
-            teamCsvWriter = new BufferedWriter(new FileWriter(teamCsvFile));
+            teamCsvWriter = new BufferedWriter(new FileWriter(teamCsvFile,true));
 
             this.getServer().getPluginManager().registerEvents(this, this);
             this.getServer().getPluginManager().registerEvents(new ChatSystem(), this);

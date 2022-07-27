@@ -34,7 +34,7 @@ public class RobotSetTeamHandler implements HttpHandler {
                                     respondDao.respondData = "Team added";
                                 } else {
                                     RobotMain.addPlayerTeam(teamDao.playerName, teamDao.team, teamDao.KHL);
-                                    respondDao.respondCode = RespondDao.RespondCode.FAILED.getValue();
+                                        respondDao.respondCode = RespondDao.RespondCode.SUCCESS.getValue();
                                     respondDao.respondData = "Team updated";
                                 }
                             } catch (SQLException e) {

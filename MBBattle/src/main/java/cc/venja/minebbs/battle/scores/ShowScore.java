@@ -15,14 +15,13 @@ import static org.bukkit.Bukkit.getServer;
 
 
 public class ShowScore {
+        ArrayList<String> old_content;
     public void UpdateScoreboard() throws SQLException {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard(); // 取得新计分板
         Objective objective = scoreboard.getObjective("ranking"); //尝试取得旧的计分项
-        if (objective != null){
-            //在找到新的计分项内容替换方案前，如果旧计分项存在直接移除，
-            scoreboard.resetScores("ranking");
+        if (objective == null){
+            objective = scoreboard.registerNewObjective("ranking", "dummy", Component.text("§l积分榜"));
         }
-        objective = scoreboard.registerNewObjective("ranking", "dummy", Component.text("§l积分榜"));
 
         ArrayList<String> content = new ArrayList<>(); // 创建内容清单，便于之后有顺序的列出计分项
         content.add("§2§l积分前5的玩家");
@@ -55,9 +54,15 @@ public class ShowScore {
             content.add(TeamName2TeamColor(mapping.getKey())+mapping.getKey()+": §4"+mapping.getValue());
         }
         Collections.reverse(content); //倒序列表
+
+        if (old_content != null&&old_content.size() != 0){
+            for (String i : old_content){
+                scoreboard.resetScores(i);
+            }
+        }
+
         for (int k = 0; k <= content.size(); k++) {
-            Score score = objective.getScore(content.get(k));
-            score.resetScore();
+            Score score = objective.getScore(content.get(k-1));
             score.setScore(k);
         }
 
@@ -66,6 +71,7 @@ public class ShowScore {
             p.setScoreboard(scoreboard);
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         }
+        old_content = content;
     }
 
     public static String PlayerName2TeamColor(String PlayerName) throws SQLException { //玩家名转颜色
