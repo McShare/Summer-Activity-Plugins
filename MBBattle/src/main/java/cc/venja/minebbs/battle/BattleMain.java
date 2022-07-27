@@ -10,6 +10,7 @@ import cc.venja.minebbs.battle.events.GameStatusChangeEvent;
 import cc.venja.minebbs.battle.scores.PlayerScoreHandle;
 import cc.venja.minebbs.battle.scores.ShowScore;
 import cc.venja.minebbs.battle.scores.TeamScoreHandle;
+import cc.venja.minebbs.battle.team.ChatSystem;
 import cc.venja.minebbs.battle.team.ColorTeamName;
 import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
@@ -26,10 +27,7 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
@@ -41,9 +39,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.util.Vector;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
@@ -71,6 +73,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     public static File joinRecordFile;
     public static YamlConfiguration joinRecord;
 
+    public Map<Player, Player> lastAttacker = new HashMap<>();
     public Map<String, List<Player>> occupies = new HashMap<>();
 
     public ColorTeamName colorTeamName;
@@ -80,17 +83,22 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     public static GameStatus status;
 
-    public Objective scoreboard;
-
     public World world;
+
+    public File personalCsvFile;
+    public BufferedWriter personalCsvWriter;
+
+    public File teamCsvFile;
+    public BufferedWriter teamCsvWriter;
 
     @Override
     public void onEnable() {
+        //注册指令
         Objects.requireNonNull(this.getServer().getPluginCommand("generate-stronghold")).setExecutor(new GenerateStrongHoldCommand());
         Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus-change")).setExecutor(new GameStatusChange());
         Objects.requireNonNull(this.getServer().getPluginCommand("gamestatus")).setExecutor(new GameStatusGet());
         Objects.requireNonNull(this.getServer().getPluginCommand("arena")).setExecutor(new ArenaManageCommand());
-
+        //初始化配置文件
         try {
             configFile = new File(this.getDataFolder().toPath().resolve("config.yml").toString()).getAbsoluteFile();
             var configExists = configFile.exists();
@@ -126,7 +134,7 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
 
             configuration.save(configFile);
-
+            //初始化数据文件
             dataFile = new File(this.getDataFolder().toPath().resolve("data.yml").toString()).getAbsoluteFile();
             var dataExists = configFile.exists();
             data = YamlConfiguration.loadConfiguration(dataFile);
@@ -135,18 +143,24 @@ public class BattleMain extends JavaPlugin implements Listener {
                 data.set("status", GameStatus.PEACETIME.getValue());
                 data.save(dataFile);
             }
-
+            //初始化队伍计分文件
             teamScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team.yml").toString()).getAbsoluteFile();
             teamScore = YamlConfiguration.loadConfiguration(teamScoreFile);
-
+            //初始化个人积分文件
             personalScoreFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal.yml").toString()).getAbsoluteFile();
             personalScore = YamlConfiguration.loadConfiguration(personalScoreFile);
-
+            //初始化进服记录文件
             joinRecordFile = new File(this.getDataFolder().toPath().resolve("record.yml").toString()).getAbsoluteFile();
             joinRecord = YamlConfiguration.loadConfiguration(joinRecordFile);
+            //初始化个人积分变更日志文件
+            personalCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("personal_record.csv").toString()).getAbsoluteFile();
+            personalCsvWriter = new BufferedWriter(new FileWriter(personalCsvFile,true));
+            //初始化团队积分变更日志文件
+            teamCsvFile = new File(this.getDataFolder().toPath().resolve("scores").resolve("team_record.csv").toString()).getAbsoluteFile();
+            teamCsvWriter = new BufferedWriter(new FileWriter(teamCsvFile,true));
 
             this.getServer().getPluginManager().registerEvents(this, this);
-
+            this.getServer().getPluginManager().registerEvents(new ChatSystem(), this);
             arenaSystem = new ArenaSystem();
 
             teamScoreHandleList.add(new TeamScoreHandle(Team.RED));
@@ -158,6 +172,26 @@ public class BattleMain extends JavaPlugin implements Listener {
             colorTeamName = new ColorTeamName();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        try {
+            //注意需开启文件续写功能
+            teamCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.teamCsvFile,true));
+            personalCsvWriter = new BufferedWriter(new FileWriter(BattleMain.instance.personalCsvFile,true));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public void onDisable() {
+        //关闭csv积分日志文件
+        try {
+            teamCsvWriter.close();
+            personalCsvWriter.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -259,13 +293,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockDamage(BlockDamageEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("玩家 %s 尝试对 位于 %s 的方块 %s 造成破坏",
-                event.getPlayer().getName(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -273,13 +300,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("玩家 %s 尝试对 位于 %s 的方块 %s 造成破坏",
-                event.getPlayer().getName(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -287,24 +307,11 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockDestroy(BlockDestroyEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的方块 %s 受到破坏", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-
-        */
         event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的方块 %s 爆炸", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-         */
         List<Block> blocks = event.blockList();
         for (Block block : blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -316,12 +323,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPistonExtend(BlockPistonExtendEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的活塞 %s 尝试推动", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-         */
         List<Block> blocks = event.getBlocks();
         for (Block block : blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -333,12 +334,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("位于 %s 的活塞 %s 尝试缩回", xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         List<Block> blocks = event.getBlocks();
         for (Block block : blocks) {
             if (protectAreaOfStrongHold(block)) {
@@ -350,13 +345,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("生物 %s 尝试对 位于 %s 的方块 %s 造成破坏",
-                event.getEntity().getType(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
     }
 
@@ -379,18 +367,18 @@ public class BattleMain extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void onPlayerDeath(PlayerDeathEvent event) throws Exception {
         Player player = event.getPlayer();
         for (PlayerScoreHandle scoreHandle : playerScoreHandleList) {
             if (player.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
-                scoreHandle.onPlayerDeath();
+                scoreHandle.deductScoreByDeath();
             }
         }
         if (player.getKiller() != null) {
             Player killer = player.getKiller();
             for (PlayerScoreHandle scoreHandle : playerScoreHandleList) {
                 if (killer.getName().equals(scoreHandle.getScore().getPlayer().getName())) {
-                    scoreHandle.onKillPlayer();
+                    scoreHandle.addScoreByKillOtherPlayer();
                 }
             }
         }
@@ -398,13 +386,6 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        /*
-        String xyz = String.format("(%s %s %s)", event.getBlock().getX(),
-                event.getBlock().getY(), event.getBlock().getZ());
-        String warning = String.format("玩家 %s 尝试位于 %s 放置方块 %s",
-                event.getPlayer().getType(), xyz, event.getBlock().getType());
-        this.getLogger().warning(warning);
-        */
         if (!event.getPlayer().isOp()) {
             event.setCancelled(protectAreaOfStrongHold(event.getBlock()));
         }
@@ -414,6 +395,7 @@ public class BattleMain extends JavaPlugin implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
 
+        Player player = event.getPlayer();
         for (Map<?, ?> stronghold : strongholdList) {
             String strongholdId = stronghold.get("Id").toString();
 
@@ -424,6 +406,17 @@ public class BattleMain extends JavaPlugin implements Listener {
                 if (player1.getName().equals(event.getPlayer().getName())) {
                     occupyPlayers.remove(i);
                     i -= 1;
+                }
+            }
+        }
+
+        if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
+            if (arenaSystem.isInCenter(new Vector(player.getLocation().getX(), player.getLocation().getZ(), 0))) {
+                if (player.getHealth() < 14) {
+                    if (lastAttacker.containsKey(player)) {
+                        player.damage(114514, lastAttacker.get(player));
+                        lastAttacker.remove(player);
+                    }
                 }
             }
         }
@@ -516,9 +509,9 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                                 for (TeamScoreHandle scoreHandle : teamScoreHandleList) {
                                     if (scoreHandle.getScore().getTeam().equals(owner)) {
-                                        scoreHandle.getScore().deduct(40);
+                                        scoreHandle.deductScoreByStrongHoldOccupied();
                                     } else if (scoreHandle.getScore().getTeam().equals(occupier)) {
-                                        scoreHandle.getScore().add(50);
+                                        scoreHandle.addScoreByOccupyStrongHold();
                                     }
                                 }
                             }
@@ -817,7 +810,7 @@ public class BattleMain extends JavaPlugin implements Listener {
 
                             for (TeamScoreHandle scoreHandle : teamScoreHandleList) {
                                 if (scoreHandle.getScore().getTeam().equals(occupier)) {
-                                    scoreHandle.getScore().add(1);
+                                    scoreHandle.addScoreByMidPointOccupy();
                                 }
                             }
                         }
@@ -911,16 +904,31 @@ public class BattleMain extends JavaPlugin implements Listener {
         if (damager.getType().equals(EntityType.PLAYER) && damagee.getType().equals(EntityType.PLAYER)) {
             if (RobotMain.getPlayerTeam(damager.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
                 event.setCancelled(true);
+            } else {
+                setLastAttacker((Player)damagee, (Player)damager);
             }
         } else if (damagee.getType().equals(EntityType.PLAYER) && damager instanceof Projectile projectile) {
             if (projectile.getShooter() != null) {
                 if (projectile.getShooter() instanceof Player p) {
                     if (RobotMain.getPlayerTeam(p.getName()) == RobotMain.getPlayerTeam(damagee.getName())) {
                         event.setCancelled(true);
+                    } else {
+                        setLastAttacker((Player) damagee, p);
                     }
                 }
             }
         }
     }
 
+
+    public void setLastAttacker(Player victim, Player attacker) {
+        lastAttacker.put(victim, attacker);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                lastAttacker.remove(victim);
+            }
+        }.runTaskLater(this, 300);
+
+    }
 }
