@@ -16,6 +16,7 @@ import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import io.github.thebusybiscuit.slimefun4.api.events.ExplosiveToolBreakBlocksEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -308,6 +309,18 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onSlimefunToolBreak(ExplosiveToolBreakBlocksEvent event) {
+        if (!event.getPlayer().isOp()) {
+            for (Block block : event.getAdditionalBlocks()) {
+                if (protectAreaOfStrongHold(block)) {
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (!event.getPlayer().isOp()) {
@@ -420,14 +433,11 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
         }
 
-        if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
-            if (arenaSystem.isInCenter(new Vector(player.getLocation().getX(), player.getLocation().getZ(), 0))) {
-                if (player.getHealth() < 14) {
-                    if (lastAttacker.containsKey(player)) {
-                        player.damage(114514, lastAttacker.get(player));
-                        lastAttacker.remove(player);
-                    }
-                }
+
+        if (player.getHealth() < 14) {
+            if (lastAttacker.containsKey(player)) {
+                player.damage(114514, lastAttacker.get(player));
+                lastAttacker.remove(player);
             }
         }
     }
@@ -448,7 +458,7 @@ public class BattleMain extends JavaPlugin implements Listener {
                 scoreboardTeam.addEntry(player.getName());
             }
 
-            if (!joinRecord.contains(name.toLowerCase())) {
+            if (!joinRecord.contains(name.toLowerCase()) || !joinRecord.getBoolean(name.toLowerCase())) {
                 joinRecord.set(name.toLowerCase(), true);
                 Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
                     try {
@@ -498,8 +508,24 @@ public class BattleMain extends JavaPlugin implements Listener {
                 Audience.audience(player).showTitle(Title.title(Component.text(title), Component.text(subtitle)));
             }
 
-            if (event.beforeStatus.equals(GameStatus.OFF_DEF_DAY)) {
-
+            if (event.beforeStatus.equals(GameStatus.BATTLE_DAY)) {
+                teleportAllPlayerToCorrTeamBase();
+                arenaSystem.configuration.set("EnablePortal", false);
+                arenaSystem.configuration.set("CenterAccess", false);
+                arenaSystem.configuration.set("CenterEnable", false);
+            } else if (event.nowStatus.equals(GameStatus.BATTLE_DAY)) {
+                teleportAllPlayerToCorrTeamBase();
+                arenaSystem.configuration.set("EnablePortal", true);
+                arenaSystem.configuration.set("CenterAccess", true);
+                arenaSystem.configuration.set("CenterEnable", true);
+            } else if (event.nowStatus.equals(GameStatus.PEACETIME)) {
+                teleportAllPlayerToCorrTeamBase();
+            } else if (event.nowStatus.equals(GameStatus.OFF_DEF_DAY)) {
+                arenaSystem.configuration.set("Enable"+Team.RED.getName(), false);
+                arenaSystem.configuration.set("Enable"+Team.BLUE.getName(), false);
+                arenaSystem.configuration.set("Enable"+Team.GREY.getName(), false);
+                arenaSystem.configuration.set("Enable"+Team.YELLOW.getName(), false);
+            } else if (event.beforeStatus.equals(GameStatus.OFF_DEF_DAY)) {
                 List<Map<?, ?>> strongholdList = configuration.getMapList("StrongHold");
 
                 for (Map<?, ?> stronghold : strongholdList) {
@@ -528,21 +554,12 @@ public class BattleMain extends JavaPlugin implements Listener {
                         }
                     }
                 }
-
-                teleportAllPlayerToCorrTeamBase();
-            } else if (event.beforeStatus.equals(GameStatus.BATTLE_DAY)) {
-                teleportAllPlayerToCorrTeamBase();
-                ArenaSystem.instance.configuration.set("EnablePortal", false);
-                ArenaSystem.instance.configuration.set("CenterAccess", false);
-                ArenaSystem.instance.configuration.set("CenterEnable", false);
-                ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
-            } else if (event.nowStatus.equals(GameStatus.BATTLE_DAY)) {
-                teleportAllPlayerToCorrTeamBase();
-                ArenaSystem.instance.configuration.set("EnablePortal", true);
-                ArenaSystem.instance.configuration.set("CenterAccess", true);
-                ArenaSystem.instance.configuration.set("CenterEnable", true);
-                ArenaSystem.instance.configuration.save(ArenaSystem.instance.configFile);
+                arenaSystem.configuration.set("Enable"+Team.RED.getName(), true);
+                arenaSystem.configuration.set("Enable"+Team.BLUE.getName(), true);
+                arenaSystem.configuration.set("Enable"+Team.GREY.getName(), true);
+                arenaSystem.configuration.set("Enable"+Team.YELLOW.getName(), true);
             }
+            arenaSystem.configuration.save(ArenaSystem.instance.configFile);
         } catch (Exception e) {
             this.getLogger().warning(e.toString());
         }
@@ -550,7 +567,14 @@ public class BattleMain extends JavaPlugin implements Listener {
 
     private void teleportAllPlayerToCorrTeamBase() throws Exception {
         for (Player player : Bukkit.getOnlinePlayers()) {
+            String playerName = player.getName().toLowerCase();
             teleportPlayerToTeamBase(player);
+            for (String name: joinRecord.getValues(false).keySet()) {
+                if (!playerName.equals(name)) {
+                    joinRecord.set(playerName, false);
+                    joinRecord.save(joinRecordFile);
+                }
+            }
         }
     }
 
