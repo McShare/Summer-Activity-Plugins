@@ -81,6 +81,7 @@ public class ArenaSystem implements Listener {
                 //沙漠 Geyser 左下
                 add("1115,1851");
                 add("1115,1300");
+                add("664,1027");
                 add("229,860");
                 add("229,1851");
             }});
