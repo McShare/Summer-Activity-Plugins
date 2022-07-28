@@ -42,6 +42,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.util.Vector;
@@ -52,6 +53,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+
+import static org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE;
 
 public class BattleMain extends JavaPlugin implements Listener {
     public static BattleMain instance;
@@ -223,6 +226,9 @@ public class BattleMain extends JavaPlugin implements Listener {
         Bukkit.getScheduler().runTaskLater(this, () -> {
             player.teleport(respawnLocation);
             player.setGameMode(GameMode.SURVIVAL);
+            PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*8,5,false,false,true);
+            player.addPotionEffect(resistance); // 传送后添加8秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
+            Audience.audience(player).sendActionBar(Component.text("§c快动起来！你现在有8秒的无敌时间！至少..在他们找到你之前.."));
         }, configuration.getInt("RespawnCooldown") * 20L);
     }
 

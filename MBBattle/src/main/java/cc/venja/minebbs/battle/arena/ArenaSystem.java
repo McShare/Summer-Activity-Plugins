@@ -178,7 +178,7 @@ public class ArenaSystem implements Listener {
                                                 }
 
                                             }.runTask(BattleMain.instance);
-                                             //Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                                             Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
                                         }
                                     }
                                 }
@@ -250,8 +250,6 @@ public class ArenaSystem implements Listener {
                 event.playSound(event, BLOCK_END_PORTAL_SPAWN, 1F, 0F);
                 Location toLoc = new Location(event.getWorld(), 1075, 71, 925);
                 runSync(() -> forceTeleport(event, toLoc));
-                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
-                event.addPotionEffect(resistance); // 传送后添加6秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -260,8 +258,6 @@ public class ArenaSystem implements Listener {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 895,71,1090);
                 runSync(() -> forceTeleport(event, toLoc));
-                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
-                event.addPotionEffect(resistance); // 传送后添加6秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -270,8 +266,6 @@ public class ArenaSystem implements Listener {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1260,69,1045);
                 runSync(() -> forceTeleport(event, toLoc));
-                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
-                event.addPotionEffect(resistance); // 传送后添加6秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -280,8 +274,6 @@ public class ArenaSystem implements Listener {
                 event.playSound(event,BLOCK_END_PORTAL_SPAWN,1F,0F);
                 Location toLoc = new Location(event.getWorld(), 1140,97,1220);
                 runSync(() -> forceTeleport(event, toLoc));
-                PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
-                event.addPotionEffect(resistance); // 传送后添加5秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
                 return true;
             }
         }
@@ -301,6 +293,9 @@ public class ArenaSystem implements Listener {
     public static void forceTeleport(Player p, Location loc) {
         lastLocation.put(p, loc);
         p.teleport(loc);
+        PotionEffect resistance = new PotionEffect(DAMAGE_RESISTANCE,20*5,5,false,false,true);
+        p.addPotionEffect(resistance); // 传送后添加5秒的5级抗性提升效果，该等级可抵御除/kill以外任何伤害。效果气泡关闭，图标显示。
+
     }
 
     //同步运行
