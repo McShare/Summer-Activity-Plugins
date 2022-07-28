@@ -16,6 +16,7 @@ import cc.venja.minebbs.login.enums.Team;
 import cc.venja.minebbs.robot.RobotMain;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import io.github.thebusybiscuit.slimefun4.api.events.ExplosiveToolBreakBlocksEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -308,6 +309,17 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onSlimefunToolBreak(ExplosiveToolBreakBlocksEvent event) {
+        if (!event.getPlayer().isOp()) {
+            for (Block block : event.getAdditionalBlocks()) {
+                if (protectAreaOfStrongHold(block)) {
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (!event.getPlayer().isOp()) {
@@ -420,14 +432,11 @@ public class BattleMain extends JavaPlugin implements Listener {
             }
         }
 
-        if (configuration.getBoolean("CenterAccess") && configuration.getBoolean("CenterEnable")) {
-            if (arenaSystem.isInCenter(new Vector(player.getLocation().getX(), player.getLocation().getZ(), 0))) {
-                if (player.getHealth() < 14) {
-                    if (lastAttacker.containsKey(player)) {
-                        player.damage(114514, lastAttacker.get(player));
-                        lastAttacker.remove(player);
-                    }
-                }
+
+        if (player.getHealth() < 14) {
+            if (lastAttacker.containsKey(player)) {
+                player.damage(114514, lastAttacker.get(player));
+                lastAttacker.remove(player);
             }
         }
     }
