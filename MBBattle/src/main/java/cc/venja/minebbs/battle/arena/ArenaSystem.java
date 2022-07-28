@@ -79,11 +79,10 @@ public class ArenaSystem implements Listener {
 
             configuration.set("TeamYELLOW", new ArrayList<String>() {{
                 //沙漠 Geyser 左下
-                add("1115,1851");
-                add("1115,1300");
-                add("664,1027");
                 add("229,860");
                 add("229,1851");
+                add("1115,1851");
+                add("664,1027");
             }});
             configuration.set("EnableTeamYELLOW", true);
 
@@ -179,7 +178,7 @@ public class ArenaSystem implements Listener {
                                                 }
 
                                             }.runTask(BattleMain.instance);
-                                             Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
+                                             //Audience.audience(p).sendActionBar(Component.text("§c不可逾越允许活动范围"));
                                         }
                                     }
                                 }

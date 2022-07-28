@@ -103,7 +103,6 @@ public class GFG
         do
         {
             int next = (i + 1) % n;
- 
             // Check if the line segment from 'p' to
             // 'extreme' intersects with the line
             // segment from 'polygon[i]' to 'polygon[next]'
@@ -114,10 +113,8 @@ public class GFG
                 // on segment. If it lies, return true, otherwise false
                 if (orientation(polygon[i], p, polygon[next]) == 0) //玩家xz是否与墙xz相交
                 {
-                    return onSegment(polygon[i], p,
-                                    polygon[next]);
+                    return onSegment(polygon[i], p, polygon[next]);
                 }
- 
                 count++;
             }
             i = next;
